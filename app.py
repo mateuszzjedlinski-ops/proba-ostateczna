@@ -66,7 +66,7 @@ def get_hedgehog_comment(api_key, status, party_active):
     try:
         genai.configure(api_key=api_key)
         # Używamy modelu FLASH, bo jest szybki i działa z nową biblioteką
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-pro")
         
         now = datetime.now()
         day_name = now.strftime("%A")
@@ -168,4 +168,5 @@ def main():
             st.write("Brak wpisów.")
 
 if __name__ == "__main__":
+
     main()

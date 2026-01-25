@@ -66,7 +66,7 @@ def get_hedgehog_comment(api_key, status, party_active):
     try:
         genai.configure(api_key=api_key)
         # Używamy modelu FLASH, bo jest szybki i działa z nową biblioteką
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         
         now = datetime.now()
         day_name = now.strftime("%A")
@@ -93,6 +93,7 @@ def main():
     init_session_state()
 
     with st.sidebar:
+        st.write(f"🔑 Status klucza: {'✅ ZAŁADOWANY' if DEFAULT_API_KEY else '❌ BRAK'}")
         st.header("⚙️ Ustawienia Jeża")
         # Pole input jest wypełnione domyślnie tylko jeśli klucz jest w secrets
         api_key_input = st.text_input("Klucz API", type="password", value=DEFAULT_API_KEY)
@@ -170,3 +171,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+

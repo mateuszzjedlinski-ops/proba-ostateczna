@@ -394,6 +394,47 @@ def main():
         else:
              api_key_to_use = st.text_input("Klucz API", type="password")
 
+        st.write("---")
+        st.header("🔔 Przypomnienia")
+        st.caption("Kliknij, aby dodać stałe przypomnienia do kalendarza w telefonie:")
+        
+        # Funkcja pomocnicza do linków Google Calendar
+        def create_cal_link(hour, title):
+            # Ustawiamy start na "jutro" żeby nie było błędów przeszłości
+            tomorrow = datetime.now().date() + pd.Timedelta(days=1)
+            date_str = tomorrow.strftime("%Y%m%d")
+            # Format czasu: HHMMSS
+            start_time = f"{hour:02d}0000" 
+            end_time = f"{hour:02d}1500" # 15 min trwania
+            
+            base_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+            text = f"&text={title.replace(' ', '+')}"
+            dates = f"&dates={date_str}T{start_time}/{date_str}T{end_time}"
+            details = "&details=Wejdź+do+Dziennika+Iglastego+i+zaznacz+status!+🦔"
+            recur = "&recur=RRULE:FREQ=DAILY" # Codziennie
+            
+            return base_url + text + dates + details + recur
+
+        # Linki
+        link_8 = create_cal_link(8, "🦔 Iglasty: Pobudka (8:00)")
+        link_14 = create_cal_link(14, "🦔 Iglasty: Checkpoint (14:00)")
+        link_20 = create_cal_link(20, "🦔 Iglasty: Raport (20:00)")
+
+        # Wyświetlanie jako linki wyglądające jak przyciski
+        st.markdown(f'''
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="{link_8}" target="_blank" style="text-decoration: none;">
+                <button style="width: 100%; padding: 8px; border: 1px solid #4CAF50; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Rano (8:00)</button>
+            </a>
+            <a href="{link_14}" target="_blank" style="text-decoration: none;">
+                <button style="width: 100%; padding: 8px; border: 1px solid #FF9800; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Południe (14:00)</button>
+            </a>
+            <a href="{link_20}" target="_blank" style="text-decoration: none;">
+                <button style="width: 100%; padding: 8px; border: 1px solid #2196F3; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">🌙 Wieczór (20:00)</button>
+            </a>
+        </div>
+        ''', unsafe_allow_html=True)
+
     # --- MAIN ---
     st.markdown(f"""
     <div style="text-align: center; padding: 10px; margin-bottom: 20px; background-color: #1E1E1E; border-radius: 10px; border: 1px solid #333;">
@@ -506,4 +547,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

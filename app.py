@@ -274,7 +274,7 @@ def save_to_csv(status, points, comment, party_mode, note):
     else:
         new_df.to_csv(file_name, mode='a', header=False, index=False)
 
-def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note):
+def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode):
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-2.5-flash")
@@ -286,7 +286,21 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
                 stone_name = INFINITY_STONES_NAMES[owned_stones - 1]
             stone_text = f"Posiadane Kamienie: {owned_stones} (Ostatni: {stone_name})"
         else:
-            stone_text = "Etap: PROLOG (Nudny Tutorial). Kamienie: [CENZURA SPOILERA]."
+            stone_text = "Etap: PROLOG (Tutorial). Kamienie: Ukryte."
+
+        # --- LOGIKA PARTY MODE ---
+        if party_mode:
+            instruction = """
+            TRYB IMPREZA WŁĄCZONY! 🚨🍻🕺
+            Zmień osobowość! Jesteś teraz wstawionym, euforycznym i chaotycznym jeżem na domówce.
+            Styl: Pijany Rocket Raccoon / Deadpool na karaoke.
+            Używaj dużo emoji (🎉🔥🍺🎸), krzycz (CAPSLOCK), proponuj toasty.
+            Nie obchodzą cię punkty, liczy się VIBE.
+            Nawiązuj do 'tańca Strażników Galaktyki' albo 'Chimichangi'.
+            Bądź bardzo entuzjastyczny, nawet jak Paweł traci punkty ("Trudno! Polej!").
+            """
+        else:
+            instruction = "Zachowaj standardową osobowość (Sarkastyczny mix Deadpoola i Rocketa). Bądź złośliwy."
 
         user_prompt = f"""
         SYTUACJA:
@@ -297,7 +311,10 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         Całkowite punkty: {total_score}.
         {stone_text}
         
-        Napisz krótki, złośliwy komentarz w stylu Deadpoola/Rocketa.
+        INSTRUKCJA SPECJALNA:
+        {instruction}
+        
+        Napisz komentarz zgodny z powyższą instrukcją.
         """
         response = model.generate_content([
             {"role": "user", "parts": [SYSTEM_PROMPT]},
@@ -305,7 +322,7 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         ])
         return response.text
     except Exception as e:
-        return "Jeż milczy. (Scenarzysta zastrajkował, błąd API)"
+        return "Jeż milczy. (Błąd API)"
 
 # --- UI APLIKACJI ---
 
@@ -459,7 +476,17 @@ def main():
                 new_total = current_score + points
                 new_cycle, new_owned, _ = calculate_game_state(new_total)
                 
-                comment = get_hedgehog_comment(api_key_to_use, status, points, new_total, new_owned, user_note)
+                # TU PRZEKAZUJEMY TRYB IMPREZY
+                comment = get_hedgehog_comment(
+                    api_key_to_use, 
+                    status, 
+                    points, 
+                    new_total, 
+                    new_owned, 
+                    user_note, 
+                    st.session_state.party_mode # <--- KLUCZOWA ZMIANA
+                )
+                
                 save_to_csv(status, points, comment, st.session_state.party_mode, user_note)
                 
                 st.session_state.last_points_change = points
@@ -479,3 +506,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

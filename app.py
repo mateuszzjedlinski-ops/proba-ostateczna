@@ -689,6 +689,50 @@ def main():
     if selected:
         status, points = selected
         
+        # --- 🛡️ ANTI-CHEAT SYSTEM (BLOKADA 3 KLIKNIĘĆ) 🛡️ ---
+        # 1. Pobieramy dzisiejszą datę jako string (format taki jak w Google Sheets, np. YYYY-MM-DD)
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        
+        # 2. Liczymy wpisy z dzisiaj
+        # Zakładam, że w df kolumna z datą nazywa się "Data". Jeśli masz "Date", zmień to tutaj!
+        try:
+            todays_entries_count = len(df[df['Data'] == today_str])
+        except KeyError:
+            # Zabezpieczenie jakby kolumna nazywała się inaczej, np. ma spację
+            todays_entries_count = 0 
+            st.error("Błąd systemu: Nie widzę kolumny 'Data'. Ale gramy dalej.")
+
+        # 3. Sprawdzamy limit (Max 3 dziennie)
+        if todays_entries_count >= 3:
+            # Lista złośliwych komentarzy
+            anti_cheat_msgs = [
+                "🛑 HEJ! Limit to 3 razy dziennie! Nie cwaniakuj.",
+                "😤 Chcesz przejść grę w tydzień? Zapomnij. Wróć jutro.",
+                "🐌 Wolniej, kowboju! Życie to maraton, nie sprint.",
+                "🚫 ERROR 404: Twoja cierpliwość nie znaleziona.",
+                "🤡 Myślisz, że System nie widzi? 3 akcje max!",
+                "💸 Za to kliknięcie pobrałbym opłatę, ale nie mam terminala.",
+                "🔒 Skarbiec jest zamknięty do 8:00 rano. Idź spać."
+            ]
+            
+            # Losujemy i wyświetlamy "nagrodę"
+            punishment = random.choice(anti_cheat_msgs)
+            
+            st.toast("🚨 WYKRYTO PRÓBĘ OSZUSTWA!")
+            time.sleep(0.5)
+            st.error(punishment)
+            
+            # Odtwarzamy dźwięk błędu (opcjonalnie, jeśli chcesz wkurzyć gracza)
+            # st.audio("error_sound.mp3") 
+            
+            time.sleep(2.5)
+            st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
+        # ----------------------------------------------------
+
+        # --- DALEJ LECI TWÓJ STARY KOD (EASTER EGGS I ZAPIS) ---
+        code_word = user_note.strip().lower()
+        # ... (reszta kodu: chimichanga, zapis do sheets itd.)
+        
         # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
         code_word = user_note.strip().lower()
 
@@ -797,6 +841,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

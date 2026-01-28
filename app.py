@@ -931,300 +931,300 @@ st.markdown("---")
 # (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
 col_note, col_toggle = st.columns([3, 1])
 with col_note:
-        user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
-    with col_toggle:
-        st.write("")
-        st.write("")
-        # Parametr key="party_mode" łączy przełącznik z pamięcią
-        st.toggle("Tryb Impreza 🔥", key="party_mode")
-
+    user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
+with col_toggle:
     st.write("")
-    cols = st.columns(5)
-    selected = None
+    st.write("")
+    # Parametr key="party_mode" łączy przełącznik z pamięcią
+    st.toggle("Tryb Impreza 🔥", key="party_mode")
 
-    # --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
-    # To jest ten nowy fragment, który wklejasz
-    if st.session_state.party_mode:
-        # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
-        score_iglica = 5
-        score_igla = 2
-        score_iglik = 0
-        score_iglute = -6
-        score_iglisko = -12
-    else:
-        # TRYB STANDARD: Zbalansowany rozwój
-        score_iglica = 3
-        score_igla = 1
-        score_iglik = 0
-        score_iglute = -2
-        score_iglisko = -4
+st.write("")
+cols = st.columns(5)
+selected = None
 
-    # Definicja przycisków z dynamicznymi punktami
-    buttons = [
-        (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
-        (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
-        (f"🌿 IGLIK", "IGLIK", score_iglik, cols[2]),
-        (f"🍂 IGLUTEK", "IGLUTEK", score_iglute, cols[3]),
-        (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
-    ]
+# --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
+# To jest ten nowy fragment, który wklejasz
+if st.session_state.party_mode:
+    # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
+    score_iglica = 5
+    score_igla = 2
+    score_iglik = 0
+    score_iglute = -6
+    score_iglisko = -12
+else:
+    # TRYB STANDARD: Zbalansowany rozwój
+    score_iglica = 3
+    score_igla = 1
+    score_iglik = 0
+    score_iglute = -2
+    score_iglisko = -4
+
+# Definicja przycisków z dynamicznymi punktami
+buttons = [
+    (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
+    (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
+    (f"🌿 IGLIK", "IGLIK", score_iglik, cols[2]),
+    (f"🍂 IGLUTEK", "IGLUTEK", score_iglute, cols[3]),
+    (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
+]
 
 # 1. Rysowanie przycisków (To jest pętla)
-    for label, status, points, col in buttons:
-        # Wyświetlamy punkty na przycisku (np. "+5" lub "-12")
-        if col.button(f"{label}\n({points:+})", use_container_width=True):
-            selected = (status, points)
+for label, status, points, col in buttons:
+    # Wyświetlamy punkty na przycisku (np. "+5" lub "-12")
+    if col.button(f"{label}\n({points:+})", use_container_width=True):
+        selected = (status, points)
 
-    if selected:
-        status, points = selected
-        
-        # --- 🛡️ ANTI-CHEAT SYSTEM (BLOKADA 3 KLIKNIĘĆ) 🛡️ ---
-        # 1. Pobieramy dzisiejszą datę jako string (format taki jak w Google Sheets, np. YYYY-MM-DD)
-        today_str = datetime.now().strftime('%Y-%m-%d')
-        
-        # 2. Liczymy wpisy z dzisiaj
-        # Zakładam, że w df kolumna z datą nazywa się "Data". Jeśli masz "Date", zmień to tutaj!
-        try:
-            todays_entries_count = len(df[df['Data'] == today_str])
-        except KeyError:
-            # Zabezpieczenie jakby kolumna nazywała się inaczej, np. ma spację
-            todays_entries_count = 0 
-            st.error("Błąd systemu: Nie widzę kolumny 'Data'. Ale gramy dalej.")
+if selected:
+    status, points = selected
+    
+    # --- 🛡️ ANTI-CHEAT SYSTEM (BLOKADA 3 KLIKNIĘĆ) 🛡️ ---
+    # 1. Pobieramy dzisiejszą datę jako string (format taki jak w Google Sheets, np. YYYY-MM-DD)
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    
+    # 2. Liczymy wpisy z dzisiaj
+    # Zakładam, że w df kolumna z datą nazywa się "Data". Jeśli masz "Date", zmień to tutaj!
+    try:
+        todays_entries_count = len(df[df['Data'] == today_str])
+    except KeyError:
+        # Zabezpieczenie jakby kolumna nazywała się inaczej, np. ma spację
+        todays_entries_count = 0 
+        st.error("Błąd systemu: Nie widzę kolumny 'Data'. Ale gramy dalej.")
 
-        # 3. Sprawdzamy limit (Max 3 dziennie)
-        if todays_entries_count >= 3:
-            # Lista złośliwych komentarzy
-            anti_cheat_msgs = [
-                "🛑 HEJ! Limit to 3 razy dziennie! Nie cwaniakuj.",
-                "😤 Chcesz przejść grę w tydzień? Zapomnij. Wróć jutro.",
-                "🐌 Wolniej, kowboju! Życie to maraton, nie sprint.",
-                "🚫 ERROR 404: Twoja cierpliwość nie znaleziona.",
-                "🤡 Myślisz, że System nie widzi? 3 akcje max!",
-                "💸 Za to kliknięcie pobrałbym opłatę, ale nie mam terminala.",
-                "🔒 Skarbiec jest zamknięty do 8:00 rano. Idź spać."
+    # 3. Sprawdzamy limit (Max 3 dziennie)
+    if todays_entries_count >= 3:
+        # Lista złośliwych komentarzy
+        anti_cheat_msgs = [
+            "🛑 HEJ! Limit to 3 razy dziennie! Nie cwaniakuj.",
+            "😤 Chcesz przejść grę w tydzień? Zapomnij. Wróć jutro.",
+            "🐌 Wolniej, kowboju! Życie to maraton, nie sprint.",
+            "🚫 ERROR 404: Twoja cierpliwość nie znaleziona.",
+            "🤡 Myślisz, że System nie widzi? 3 akcje max!",
+            "💸 Za to kliknięcie pobrałbym opłatę, ale nie mam terminala.",
+            "🔒 Skarbiec jest zamknięty do 8:00 rano. Idź spać."
+        ]
+        
+        # Losujemy i wyświetlamy "nagrodę"
+        punishment = random.choice(anti_cheat_msgs)
+        
+        st.toast("🚨 WYKRYTO PRÓBĘ OSZUSTWA!")
+        time.sleep(0.5)
+        st.error(punishment)
+        
+        # Odtwarzamy dźwięk błędu (opcjonalnie, jeśli chcesz wkurzyć gracza)
+        # st.audio("error_sound.mp3") 
+        
+        time.sleep(2.5)
+        st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
+    # ----------------------------------------------------
+# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA PRECYZYJNA) 🎵 ---
+    delay_time = 2.5  # Domyślny, krótki czas (dla komentarzy Rocketa)
+
+    # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
+    if points > 0:
+        
+        if st.session_state.party_mode:
+            # --- SCENARIUSZ: IGLICA (IMPREZA) ---
+            # WYMAGANIE: Zgryźliwy ale z podziwem komentarz Rocketa (bez efektów)
+            rocket_respect = [
+                "🦝 ROCKET: Ty chory draniu... udało ci się.",
+                "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu, a jednak.",
+                "🦝 ROCKET: Jesteś świrem. Szanuję to.",
+                "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie.",
+                "🦝 ROCKET: Co za fart. Następnym razem wybuchniesz."
+            ]
+            st.success(random.choice(rocket_respect))
+            # Zostawiamy krótki czas (2.5s) i brak muzyki/gifa
+        
+        else:
+            # --- SCENARIUSZ: IGLICA (STANDARD) ---
+            # WYMAGANIE: Losowanie Starlord/Deadpool (Muzyka + GIF + 10s)
+            iglica_options = [
+                ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
+                ("deadpool_dance.gif", "deadpool_music.mp3", "💃 BYE BYE! Deadpool przejmuje show!")
             ]
             
-            # Losujemy i wyświetlamy "nagrodę"
-            punishment = random.choice(anti_cheat_msgs)
+            chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
             
-            st.toast("🚨 WYKRYTO PRÓBĘ OSZUSTWA!")
-            time.sleep(0.5)
-            st.error(punishment)
-            
-            # Odtwarzamy dźwięk błędu (opcjonalnie, jeśli chcesz wkurzyć gracza)
-            # st.audio("error_sound.mp3") 
-            
-            time.sleep(2.5)
-            st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
-        # ----------------------------------------------------
-# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA PRECYZYJNA) 🎵 ---
-        delay_time = 2.5  # Domyślny, krótki czas (dla komentarzy Rocketa)
+            # Odpalamy Show
+            if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
+                st.audio(chosen_audio, autoplay=True)
+                st.markdown("---")
+                st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
+                delay_time = 11.0 # Wydłużamy czas na show
 
-        # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
-        if points > 0:
-            
-            if st.session_state.party_mode:
-                # --- SCENARIUSZ: IGLICA (IMPREZA) ---
-                # WYMAGANIE: Zgryźliwy ale z podziwem komentarz Rocketa (bez efektów)
-                rocket_respect = [
-                    "🦝 ROCKET: Ty chory draniu... udało ci się.",
-                    "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu, a jednak.",
-                    "🦝 ROCKET: Jesteś świrem. Szanuję to.",
-                    "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie.",
-                    "🦝 ROCKET: Co za fart. Następnym razem wybuchniesz."
-                ]
-                st.success(random.choice(rocket_respect))
-                # Zostawiamy krótki czas (2.5s) i brak muzyki/gifa
-            
-            else:
-                # --- SCENARIUSZ: IGLICA (STANDARD) ---
-                # WYMAGANIE: Losowanie Starlord/Deadpool (Muzyka + GIF + 10s)
-                iglica_options = [
-                    ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
-                    ("deadpool_dance.gif", "deadpool_music.mp3", "💃 BYE BYE! Deadpool przejmuje show!")
-                ]
-                
-                chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
-                
-                # Odpalamy Show
-                if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
-                    st.audio(chosen_audio, autoplay=True)
-                    st.markdown("---")
-                    st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
-                    delay_time = 11.0 # Wydłużamy czas na show
-
-        # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
-        elif points < 0:
-            
-            if st.session_state.party_mode:
-                # --- SCENARIUSZ: IGLISKO (IMPREZA) ---
-                # WYMAGANIE: Thor (Muzyka + GIF + 10s)
-                if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
-                    st.audio("thor_drunk.mp3", autoplay=True)
-                    st.markdown("---")
-                    st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien...", use_container_width=True)
-                    delay_time = 11.0 # Wydłużamy czas na show dla Thora
-            
-            else:
-                # --- SCENARIUSZ: IGLISKO (STANDARD) ---
-                # WYMAGANIE: Nieznośny komentarz Rocketa (bez efektów)
-                rocket_insults = [
-                    "🦝 ROCKET: Gratulacje, geniuszu. Obniżyłeś IQ całego statku.",
-                    "🦝 ROCKET: Groot by to lepiej wybrał. A on jest drzewem.",
-                    "🦝 ROCKET: Nie dotykaj niczego więcej, błagam.",
-                    "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał.",
-                    "🦝 ROCKET: Potrzebuję twojej protezy... za karę."
-                ]
-                st.error(random.choice(rocket_insults))
+    # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
+    elif points < 0:
+        
+        if st.session_state.party_mode:
+            # --- SCENARIUSZ: IGLISKO (IMPREZA) ---
+            # WYMAGANIE: Thor (Muzyka + GIF + 10s)
+            if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
+                st.audio("thor_drunk.mp3", autoplay=True)
+                st.markdown("---")
+                st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien...", use_container_width=True)
+                delay_time = 11.0 # Wydłużamy czas na show dla Thora
+        
+        else:
+            # --- SCENARIUSZ: IGLISKO (STANDARD) ---
+            # WYMAGANIE: Nieznośny komentarz Rocketa (bez efektów)
+            rocket_insults = [
+                "🦝 ROCKET: Gratulacje, geniuszu. Obniżyłeś IQ całego statku.",
+                "🦝 ROCKET: Groot by to lepiej wybrał. A on jest drzewem.",
+                "🦝 ROCKET: Nie dotykaj niczego więcej, błagam.",
+                "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał.",
+                "🦝 ROCKET: Potrzebuję twojej protezy... za karę."
+            ]
+            st.error(random.choice(rocket_insults))
 
 # --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
-        # Działa na każdą opcję. Szansa 5%.
-        # Losuje modyfikator: -2 (Pech), 0 (Bez zmian), +2 (Fart)
-        chaos_change = 0
+    # Działa na każdą opcję. Szansa 5%.
+    # Losuje modyfikator: -2 (Pech), 0 (Bez zmian), +2 (Fart)
+    chaos_change = 0
+    
+    if random.random() < 0.05: # 5% szans na uruchomienie koła
         
-        if random.random() < 0.05: # 5% szans na uruchomienie koła
-            
-            # Losujemy jedną z 3 opcji
-            wheel_options = [-2, 0, 2]
-            chaos_change = random.choice(wheel_options)
-            
-            # Aktualizujemy punkty
-            points += chaos_change
-            
-            # Wspólny efekt dźwiękowy dla "Zdarzenia Chaosu" (jeśli plik istnieje)
-            # Używamy tego samego dźwięku, żeby zasygnalizować "System coś wylosował"
-            if os.path.exists("chaos_event.mp3"):
-                st.audio("chaos_event.mp3", autoplay=True)
-                # Wydłużamy nieco czas, żeby dźwięk zdążył wybrzmieć, jeśli inne są krótkie
-                if delay_time < 4.0: delay_time = 4.0
-
-            # --- SCENARIUSZ 1: FART (+2) ---
-            if chaos_change > 0:
-                st.toast(f"🎰 KOŁO FORTUNY: FART! Bonus +{chaos_change} pkt!", icon="🍀")
-                st.balloons()
-
-            # --- SCENARIUSZ 2: PECH (-2) ---
-            elif chaos_change < 0:
-                st.toast(f"🎰 KOŁO FORTUNY: PECH! Tracisz {abs(chaos_change)} pkt!", icon="💀")
-                # Tu usuwamy Deadpoola. Pech to po prostu ból wizualny (i strata pkt).
-
-            # --- SCENARIUSZ 3: BEZ ZMIAN (0) ---
-            else:
-                st.toast("🎰 KOŁO FORTUNY: UFF... Przeszło obok. (0 zmian)", icon="😅")
-
-            # Dodajemy info do notatki
-            user_note += f" [KOŁO: {chaos_change:+d}]"
-        # --- DALEJ LECI TWÓJ STARY KOD (EASTER EGGS I ZAPIS) ---
-        code_word = user_note.strip().lower()
-        # ... (reszta kodu: chimichanga, zapis do sheets itd.)
+        # Losujemy jedną z 3 opcji
+        wheel_options = [-2, 0, 2]
+        chaos_change = random.choice(wheel_options)
         
-        # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
-        code_word = user_note.strip().lower()
-
-        # A. CHIMICHANGA (SPAM ATAK)
-        if code_word == "chimichanga":
-            # Zamiast balonów -> Seria szybkich, chaotycznych powiadomień
-            st.toast("🌮 OOO TAAAAK!")
-            time.sleep(0.4)
-            st.toast("🌯 CHIMI-")
-            time.sleep(0.4)
-            st.toast("🔥 -F***ING-")
-            time.sleep(0.4)
-            st.toast("🥑 -CHANGA!!!")
-            time.sleep(0.5)
-            st.info("🤤 Właśnie wirtualnie zjadłeś 5000 kalorii. Warto było.")
-
-        # A. THE THANOS SNAP (Fake Delete)
-        if code_word == "thanos":
-            with st.spinner("⚠️ WYKRYTO ZAGROŻENIE..."):
-                time.sleep(1)
-            
-            # Pasek postępu kasowania
-            progress_text = "Usuwanie bazy danych..."
-            my_bar = st.progress(0, text=progress_text)
-
-            for percent_complete in range(100):
-                time.sleep(0.02) # Szybkość kasowania
-                my_bar.progress(percent_complete + 1, text=f"Kasowanie wspomnień: {percent_complete}%")
-            
-            st.error("💀 BAZA DANYCH USUNIĘTA TRWALE.")
-            time.sleep(2)
-            st.toast("🫰 Pstryk... Żartowałem. Masz szczęście.")
-            time.sleep(1)
-            my_bar.empty() # Czyści pasek
-
-        # B. SŁABE HASŁA (Wyśmiewanie)
-        elif code_word in ["admin", "hasło", "1234", "password"]:
-            st.toast("🔒 Serio? Takie hasło?")
-            time.sleep(1.5)
-            st.toast("🤦‍♂️ Mój kalkulator ma lepsze zabezpieczenia.")
-            time.sleep(1.5)
-            st.toast("🦔 Żenujące. Odejmuję 0 punktów tylko z litości.")
-
-        # C. SELF-DESTRUCT (Deadpool style)
-        elif code_word == "autodestrukcja":
-            st.warning("💣 Autodestrukcja za 3...")
-            time.sleep(1)
-            st.warning("💣 2...")
-            time.sleep(1)
-            st.warning("💣 1...")
-            time.sleep(1)
-            st.success("💥 BUM! (Nie mieliśmy budżetu na efekty specjalne).")
+        # Aktualizujemy punkty
+        points += chaos_change
         
-        # --- KONIEC EASTER EGGS ---
+        # Wspólny efekt dźwiękowy dla "Zdarzenia Chaosu" (jeśli plik istnieje)
+        # Używamy tego samego dźwięku, żeby zasygnalizować "System coś wylosował"
+        if os.path.exists("chaos_event.mp3"):
+            st.audio("chaos_event.mp3", autoplay=True)
+            # Wydłużamy nieco czas, żeby dźwięk zdążył wybrzmieć, jeśli inne są krótkie
+            if delay_time < 4.0: delay_time = 4.0
 
-        # 3. Logika zapisu (Tutaj usuwamy zduplikowany fragment, który miałeś)
-        if not DEFAULT_API_KEY:
-            st.error("Brak konfiguracji API!")
+        # --- SCENARIUSZ 1: FART (+2) ---
+        if chaos_change > 0:
+            st.toast(f"🎰 KOŁO FORTUNY: FART! Bonus +{chaos_change} pkt!", icon="🍀")
+            st.balloons()
+
+        # --- SCENARIUSZ 2: PECH (-2) ---
+        elif chaos_change < 0:
+            st.toast(f"🎰 KOŁO FORTUNY: PECH! Tracisz {abs(chaos_change)} pkt!", icon="💀")
+            # Tu usuwamy Deadpoola. Pech to po prostu ból wizualny (i strata pkt).
+
+        # --- SCENARIUSZ 3: BEZ ZMIAN (0) ---
         else:
-            with st.spinner('Synchronizacja z Chmurą...'):
-                # 1. Zapamiętujemy stary stan (żeby wiedzieć, czy był awans)
-                old_cycle, _, _ = calculate_game_state(current_score)
-                
-                # 2. Obliczamy nowe punkty
-                new_total = current_score + points
-                new_cycle, new_owned, _ = calculate_game_state(new_total)
-                
-                # 3. Generujemy komentarz Jeża (z kompletem argumentów!)
-                comment = get_hedgehog_comment(
-                    DEFAULT_API_KEY,
-                    status,
-                    points,
-                    new_total,
-                    new_owned,
-                    user_note,
-                    st.session_state.party_mode,
-                    df,
-                    streak_count,
-                    streak_type
-                )
-                
-                # 4. Zapisujemy do Google Sheets
-                save_to_sheets(status, points, comment, st.session_state.party_mode, user_note)
-                
-                # 5. Aktualizujemy sesję
-                st.session_state.last_points_change = points
-                st.session_state.last_comment = comment
-                
-                # --- TU JEST KLUCZOWY MECHANIZM PRZEJŚCIA ---
-                # Jeśli był cykl 0 (Prolog), a teraz jest 1 (Skarbiec) -> Ustaw flagę animacji
-                if old_cycle == 0 and new_cycle == 1:
-                    st.session_state.show_vault_animation = True
-                
-# --- 💰 POWIADOMIENIE O KREDYTACH (TYLKO PO ODBLOKOWANIU SKLEPU) ---
-        new_total_score = current_score + points 
-        if new_total_score >= 60:
-            earned_credits = 0
-            if points >= 5: earned_credits = 10 
-            elif points > 0: earned_credits = 5
-            elif points < 0: earned_credits = 1
-            
-            if earned_credits > 0:
-                time.sleep(0.5) 
-                st.toast(f"💳 Zaksięgowano: +{earned_credits} kredytów!", icon="🤑")
+            st.toast("🎰 KOŁO FORTUNY: UFF... Przeszło obok. (0 zmian)", icon="😅")
 
-        # --- FINALIZACJA ---
-        time.sleep(delay_time) 
-        st.rerun()
+        # Dodajemy info do notatki
+        user_note += f" [KOŁO: {chaos_change:+d}]"
+    # --- DALEJ LECI TWÓJ STARY KOD (EASTER EGGS I ZAPIS) ---
+    code_word = user_note.strip().lower()
+    # ... (reszta kodu: chimichanga, zapis do sheets itd.)
+    
+    # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
+    code_word = user_note.strip().lower()
+
+    # A. CHIMICHANGA (SPAM ATAK)
+    if code_word == "chimichanga":
+        # Zamiast balonów -> Seria szybkich, chaotycznych powiadomień
+        st.toast("🌮 OOO TAAAAK!")
+        time.sleep(0.4)
+        st.toast("🌯 CHIMI-")
+        time.sleep(0.4)
+        st.toast("🔥 -F***ING-")
+        time.sleep(0.4)
+        st.toast("🥑 -CHANGA!!!")
+        time.sleep(0.5)
+        st.info("🤤 Właśnie wirtualnie zjadłeś 5000 kalorii. Warto było.")
+
+    # A. THE THANOS SNAP (Fake Delete)
+    if code_word == "thanos":
+        with st.spinner("⚠️ WYKRYTO ZAGROŻENIE..."):
+            time.sleep(1)
+        
+        # Pasek postępu kasowania
+        progress_text = "Usuwanie bazy danych..."
+        my_bar = st.progress(0, text=progress_text)
+
+        for percent_complete in range(100):
+            time.sleep(0.02) # Szybkość kasowania
+            my_bar.progress(percent_complete + 1, text=f"Kasowanie wspomnień: {percent_complete}%")
+        
+        st.error("💀 BAZA DANYCH USUNIĘTA TRWALE.")
+        time.sleep(2)
+        st.toast("🫰 Pstryk... Żartowałem. Masz szczęście.")
+        time.sleep(1)
+        my_bar.empty() # Czyści pasek
+
+    # B. SŁABE HASŁA (Wyśmiewanie)
+    elif code_word in ["admin", "hasło", "1234", "password"]:
+        st.toast("🔒 Serio? Takie hasło?")
+        time.sleep(1.5)
+        st.toast("🤦‍♂️ Mój kalkulator ma lepsze zabezpieczenia.")
+        time.sleep(1.5)
+        st.toast("🦔 Żenujące. Odejmuję 0 punktów tylko z litości.")
+
+    # C. SELF-DESTRUCT (Deadpool style)
+    elif code_word == "autodestrukcja":
+        st.warning("💣 Autodestrukcja za 3...")
+        time.sleep(1)
+        st.warning("💣 2...")
+        time.sleep(1)
+        st.warning("💣 1...")
+        time.sleep(1)
+        st.success("💥 BUM! (Nie mieliśmy budżetu na efekty specjalne).")
+    
+    # --- KONIEC EASTER EGGS ---
+
+    # 3. Logika zapisu (Tutaj usuwamy zduplikowany fragment, który miałeś)
+    if not DEFAULT_API_KEY:
+        st.error("Brak konfiguracji API!")
+    else:
+        with st.spinner('Synchronizacja z Chmurą...'):
+            # 1. Zapamiętujemy stary stan (żeby wiedzieć, czy był awans)
+            old_cycle, _, _ = calculate_game_state(current_score)
+            
+            # 2. Obliczamy nowe punkty
+            new_total = current_score + points
+            new_cycle, new_owned, _ = calculate_game_state(new_total)
+            
+            # 3. Generujemy komentarz Jeża (z kompletem argumentów!)
+            comment = get_hedgehog_comment(
+                DEFAULT_API_KEY,
+                status,
+                points,
+                new_total,
+                new_owned,
+                user_note,
+                st.session_state.party_mode,
+                df,
+                streak_count,
+                streak_type
+            )
+            
+            # 4. Zapisujemy do Google Sheets
+            save_to_sheets(status, points, comment, st.session_state.party_mode, user_note)
+            
+            # 5. Aktualizujemy sesję
+            st.session_state.last_points_change = points
+            st.session_state.last_comment = comment
+            
+            # --- TU JEST KLUCZOWY MECHANIZM PRZEJŚCIA ---
+            # Jeśli był cykl 0 (Prolog), a teraz jest 1 (Skarbiec) -> Ustaw flagę animacji
+            if old_cycle == 0 and new_cycle == 1:
+                st.session_state.show_vault_animation = True
+            
+# --- 💰 POWIADOMIENIE O KREDYTACH (TYLKO PO ODBLOKOWANIU SKLEPU) ---
+    new_total_score = current_score + points 
+    if new_total_score >= 60:
+        earned_credits = 0
+        if points >= 5: earned_credits = 10 
+        elif points > 0: earned_credits = 5
+        elif points < 0: earned_credits = 1
+        
+        if earned_credits > 0:
+            time.sleep(0.5) 
+            st.toast(f"💳 Zaksięgowano: +{earned_credits} kredytów!", icon="🤑")
+
+    # --- FINALIZACJA ---
+    time.sleep(delay_time) 
+    st.rerun()
 
 if st.session_state.last_comment:
     if st.session_state.last_points_change >= 3:
@@ -1239,6 +1239,7 @@ with st.expander("📜 Historia wpisów (z Chmury)"):
 
 if __name__ == "__main__":
     main()
+
 
 
 

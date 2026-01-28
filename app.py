@@ -505,38 +505,55 @@ def main():
     st.caption("System operacyjny życia po trzydziestce.")
 
     st.markdown("---")
-    col_img, col_stat = st.columns([1, 2])
-    with col_img:
-        if os.path.exists(level_img):
-            st.image(level_img, caption=level_desc)
-        else:
-            st.header("🦔")
-            st.caption(f"(Brak pliku: {level_img})")
+# --- NOWA SEKCJA WYŚWIETLANIA (Zastępuje kolumny col_img/col_stat) ---
+    st.markdown("---")
     
-    with col_stat:
-        if cycle == 0:
-            st.subheader("Prolog: Droga do Wojownika")
-            next_goal_text = "Odblokowanie Misji"
-        elif owned_stones < 6:
-            target_name = INFINITY_STONES_NAMES[owned_stones]
-            st.subheader(f"Misja: Kamień {target_name}")
-            next_goal_text = f"Zdobycie Kamienia {target_name}"
+    # 1. ETAP SKARBCA (60+ PKT)
+    if current_score >= 60:
+        # cycle_progress to licznik punktów w ramach obecnego kamienia (0-60)
+        # Został obliczony wyżej w funkcji calculate_game_state
+        progress_in_stone = cycle_progress 
+        
+        # LOGIKA 3 STANÓW WALKI (Co 20 pkt)
+        if progress_in_stone < 20:
+            treasury_state = "Stan: PRZYGOTOWANIE 🧘"
+        elif progress_in_stone < 40:
+            treasury_state = "Stan: WALKA TRWA ⚔️"
         else:
-            st.subheader("Koniec Gry")
-            next_goal_text = "Nieskończoność"
+            treasury_state = "Stan: FATALITY 🩸💀"
 
-        progress_val = cycle_progress / 60.0
-        if progress_val > 1.0: progress_val = 1.0
-        if progress_val < 0: progress_val = 0.0
+        # Wyświetlamy duży nagłówek stanu
+        st.subheader(treasury_state)
         
-        st.progress(progress_val, text=f"Do celu ({next_goal_text}): {60 - cycle_progress} pkt")
-        
-        if cycle_progress < 10:
-            st.caption("Stan: Rozgrzewka")
-        elif cycle_progress < 45:
-            st.caption("Stan: Walka trwa")
+        # Wyświetlamy obrazek (używamy zmiennej level_img, która jest już wyliczona wyżej)
+        if os.path.exists(level_img):
+            st.image(level_img, caption=f"Walka o Kamień: {owned_stones + 1}/6")
         else:
-            st.caption("🔥 Stan: FINISH HIM!")
+            st.info(f"Walka o Kamień numer {owned_stones + 1}")
+
+        # Pasek postępu dla AKTUALNEGO kamienia
+        st.progress(progress_in_stone / 60.0, text=f"Postęp: {int(progress_in_stone)}/60 pkt")
+
+    # 2. ETAP PROLOGU (0-59 PKT)
+    else:
+        # Logika 4 etapów (Twoja wersja)
+        prolog_stage_index = int(current_score // 15)
+        prolog_stage_index = min(prolog_stage_index, 3)
+        
+        # Twoje pliki i nazwy
+        prolog_images = ["level_1.png", "level_2.png", "level_3.png", "level_4.png"]
+        prolog_states = ["Stan: OBIEŻYŚWIAT 🌍", "Stan: NADZIEJA ✨", "Stan: WOJOWNIK 🗡️", "Stan: BOHATER 🦸‍♂️"]
+        
+        # Wyświetlamy Stan i Obrazek
+        st.subheader(prolog_states[prolog_stage_index])
+        
+        current_prolog_img = prolog_images[prolog_stage_index]
+        if os.path.exists(current_prolog_img):
+            st.image(current_prolog_img, caption=f"Poziom {prolog_stage_index + 1}/4")
+        else:
+             st.warning(f"Brak pliku: {current_prolog_img} (Wrzuć go do folderu!)")
+
+        st.progress(current_score / 60.0, text=f"Prolog: {current_score}/60 pkt")
 
     st.markdown("---")
     col_note, col_toggle = st.columns([3, 1])
@@ -684,6 +701,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -583,7 +583,7 @@ def main():
         if col.button(f"{label}\n({points:+})", use_container_width=True):
             selected = (status, points)
 
-    if selected:
+        if selected:
         status, points = selected
         
         # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
@@ -667,6 +667,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

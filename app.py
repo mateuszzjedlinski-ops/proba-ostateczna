@@ -294,6 +294,74 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
         else:
             desc = f"BÓG | Forma: {level_name}"
 
+# --- FUNKCJA ANIMACJI CYBER-SCANNER (HYBRYDA) ---
+def play_level_up_animation(new_cycle):
+    placeholder = st.empty()
+    
+    # SCENARIUSZ DLA OTWARCIA SKARBCA (60 PKT)
+    if new_cycle == 1:
+        with placeholder.container():
+            st.markdown("---")
+            
+            # 1. HACKOWANIE (Teksty z pierwszej wersji)
+            with st.spinner("⚠️ WYKRYTO FLUKTUACJE ENERGII..."):
+                time.sleep(1.5)
+            
+            progress_text = "ŁAMANIE ZABEZPIECZEŃ SKARBCA..."
+            my_bar = st.progress(0, text=progress_text)
+            
+            # Symulacja ładowania
+            for percent_complete in range(100):
+                time.sleep(0.01) # Szybkie ładowanie
+                my_bar.progress(percent_complete + 1, text=f"DEKODOWANIE: {percent_complete}%")
+            
+            time.sleep(0.5)
+            my_bar.empty() # Czyścimy pasek, żeby zrobić miejsce na show
+            
+            # 2. EFEKT "ROZRZUCANIA KAMIENI" (Błyskotki z drugiej wersji)
+            # Definiujemy kamienie (Ikona + Kolor Hex)
+            stones_fx = [
+                ("🟣", "#800080"), # MOC
+                ("🔵", "#0000FF"), # PRZESTRZEŃ
+                ("🔴", "#FF0000"), # RZECZYWISTOŚĆ
+                ("🟠", "#FF8C00"), # DUSZA
+                ("🟢", "#008000"), # CZAS
+                ("🟡", "#FFD700")  # UMYSŁ
+            ]
+            
+            st.subheader("📡 SKANOWANIE MULTIWERSUM...")
+            
+            # Tworzymy 5 kolumn, żeby "rozrzucić" błyski po szerokości ekranu
+            cols = st.columns(5)
+            
+            # Pętla generująca losowe błyski
+            for _ in range(25): # 25 błysków
+                col = random.choice(cols)
+                stone_icon, stone_color = random.choice(stones_fx)
+                
+                with col:
+                    # Wyświetlamy dużą kolorową kropkę/kamień na ułamek sekundy
+                    st.markdown(f"<h1 style='text-align: center; color: {stone_color};'>{stone_icon}</h1>", unsafe_allow_html=True)
+                
+                time.sleep(0.15) # Efekt stroboskopu
+            
+            # 3. FINAŁ (Połączenie obu wersji)
+            time.sleep(0.5)
+            st.success("✅ DOSTĘP PRZYZNANY. SKARBIEC OTWARTY.")
+            
+            # Terminalowy komunikat końcowy
+            st.code("SYSTEM: ONLINE\nCEL: ZEBRAĆ JE WSZYSTKIE\nSTATUS: BOHATER", language="bash")
+            time.sleep(2.5)
+            
+    # SCENARIUSZ DLA DALSZYCH CYKLI
+    elif new_cycle > 1:
+        with placeholder.container():
+            st.title(f"🔁 NOWA GRYWALNOŚĆ: CYKL {new_cycle}!")
+            st.toast("🌀 Czas cofnął się ponownie...")
+            time.sleep(2)
+
+    placeholder.empty()
+
     if os.path.exists(filename):
         return filename, desc
     else:
@@ -417,6 +485,12 @@ def create_cal_link(hour, title):
 
 def main():
     init_session_state()
+    
+    # --- ANIMACJA PRZEJŚCIA (Wklej to tutaj) ---
+    if "show_vault_animation" in st.session_state and st.session_state.show_vault_animation:
+        play_level_up_animation(1) 
+        st.session_state.show_vault_animation = False
+    # -------------------------------------------
     
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
@@ -663,29 +737,40 @@ def main():
         if not DEFAULT_API_KEY:
             st.error("Brak konfiguracji API!")
         else:
-            # Dalej jest Twój kod z 'with st.spinner...' - upewnij się, że jest wcięty pod tym 'else:'
             with st.spinner('Synchronizacja z Chmurą...'):
+                # 1. Zapamiętujemy stary stan (żeby wiedzieć, czy był awans)
+                old_cycle, _, _ = calculate_game_state(current_score)
+                
+                # 2. Obliczamy nowe punkty
                 new_total = current_score + points
                 new_cycle, new_owned, _ = calculate_game_state(new_total)
                 
+                # 3. Generujemy komentarz Jeża (z kompletem argumentów!)
                 comment = get_hedgehog_comment(
-                    DEFAULT_API_KEY, 
-                    status, 
-                    points, 
-                    new_total, 
-                    new_owned, 
-                    user_note, 
+                    DEFAULT_API_KEY,
+                    status,
+                    points,
+                    new_total,
+                    new_owned,
+                    user_note,
                     st.session_state.party_mode,
                     df,
                     streak_count,
                     streak_type
                 )
                 
-                # ZAPIS DO GOOGLE SHEETS
+                # 4. Zapisujemy do Google Sheets
                 save_to_sheets(status, points, comment, st.session_state.party_mode, user_note)
                 
+                # 5. Aktualizujemy sesję
                 st.session_state.last_points_change = points
                 st.session_state.last_comment = comment
+                
+                # --- TU JEST KLUCZOWY MECHANIZM PRZEJŚCIA ---
+                # Jeśli był cykl 0 (Prolog), a teraz jest 1 (Skarbiec) -> Ustaw flagę animacji
+                if old_cycle == 0 and new_cycle == 1:
+                    st.session_state.show_vault_animation = True
+                
                 st.rerun()
 
     if st.session_state.last_comment:
@@ -701,6 +786,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

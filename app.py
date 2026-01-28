@@ -8,6 +8,34 @@ import random
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# --- 🛍️ SKLEP: CZARNY RYNEK ARTEFAKTÓW (CENY -20%, ROTACJA OD LUTEGO) ---
+SHOP_INVENTORY = {
+    # 🛒 ROTACJA 1: STRAŻNICY I NAJEMNICY (Luty-Marzec / Sierpień-Wrzesień)
+    0: [
+        {"name": "🎧 Walkman Star-Lorda", "desc": "Oryginalny Sony TPS-L2. Przejmujesz kontrolę nad muzyką w aucie/domu na cały dzień.", "cost": 280, "icon": "🎧", "hero": "Star-Lord", "reaction": "🕺 STAR-LORD: Ej! To moje! Dobra... pożyczę ci. Puszczaj 'Hooked on a Feeling'!"},
+        {"name": "🔫 Złote Gnaty Deadpoola", "desc": "Dwie repliki Desert Eagle. Symbolizują 'Dziką Kartę' - wygranie dowolnej dyskusji bez argumentów.", "cost": 480, "icon": "🔫", "hero": "Deadpool", "reaction": "🌮 DEADPOOL: Ooo tak! Widzisz jak błyszczą? Chcę 10% z każdego fraga. I chimichangę."},
+        {"name": "🔨 Mjolnir (Replika)", "desc": "Jeśli go kupisz, jesteś Godzien. Zwalnia z jednego ciężkiego obowiązku domowego.", "cost": 640, "icon": "🔨", "hero": "Thor", "reaction": "🍺 THOR: HA! Wiedziałem, że masz iskrę! Tylko uważaj, jest trochę... naelektryzowany."},
+        {"name": "🛡️ Przepustka S.H.I.E.L.D.", "desc": "Dokument od Nicka Fury'ego. Gwarantuje nietykalność i święty spokój przez ustalony czas.", "cost": 960, "icon": "🏖️", "hero": "Nick Fury", "reaction": "👁️ NICK FURY: Dobra robota, żołnierzu. Znikaj mi z oczu. Masz wolne."},
+        {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 1200, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"}
+    ],
+    # 🛒 ROTACJA 2: AVENGERS ASSEMBLE (Kwiecień-Maj / Październik-Listopad)
+    1: [
+        {"name": "🍩 Pudełko Pączków Starka", "desc": "Wymień na: Zamawiamy jedzenie z Twojej ulubionej knajpy (ja stawiam).", "cost": 320, "icon": "🍩", "hero": "Tony Stark", "reaction": "🕶️ TONY STARK: Zostaw mi chociaż jednego z lukrem! Dobra, masz."},
+        {"name": "🩳 Fioletowe Szorty Hulka", "desc": "Prawo do 'Niekontrolowanego Wybuchu' - możesz marudzić przez 10 min, a ja tylko przytakuję.", "cost": 440, "icon": "🩳", "hero": "Bruce Banner", "reaction": "🧪 BANNER: Są trochę rozciągnięte... ale działają. Tylko nie zzielenej mi tu."},
+        {"name": "🏹 Łuk Hawkeye'a", "desc": "Daje Ci 'Celny Strzał' - Ty wybierasz film na wieczór i nie ma dyskusji.", "cost": 560, "icon": "🏹", "hero": "Hawkeye", "reaction": "🎯 HAWKEYE: Trafiłeś w dziesiątkę. Pamiętaj - masz tylko jedną strzałę tego typu."},
+        {"name": "🇺🇸 Tarcza Kapitana", "desc": "Użyj, aby zrobić 'UNIK' od jednego nudnego spotkania lub wyjścia.", "cost": 720, "icon": "🛡️", "hero": "Steve Rogers", "reaction": "🫡 CAPTAIN AMERICA: Odpocznij, żołnierzu. Zasłużyłeś na przepustkę."},
+        {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 880, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."}
+    ],
+    # 🛒 ROTACJA 3: MAGIA I KOSMOS (Czerwiec-Lipiec / Grudzień-Styczeń)
+    2: [
+        {"name": "🌱 Doniczka z Grootem", "desc": "Prawo do 'Wegetacji' - leżysz na kanapie i nikt nic od Ciebie nie chce przez wieczór.", "cost": 280, "icon": "🪴", "hero": "Groot", "reaction": "🪵 GROOT: I am Groot. (Tłumaczenie: Powiedział, że masz fajne buty)."},
+        {"name": "👁️ Oko Agamotto", "desc": "Kamień Czasu. 'Cofnięcie Czasu' - anulowanie jednego głupiego tekstu bez konsekwencji.", "cost": 520, "icon": "🧿", "hero": "Dr. Strange", "reaction": "🧙‍♂️ DR. STRANGE: Używaj rozważnie. Nie psuj kontinuum dla pizzy... chociaż..."},
+        {"name": "🧪 Cząsteczki Pyma", "desc": "'Skurczenie problemu' - skracamy o połowę czas trwania wizyty gości lub zakupów.", "cost": 680, "icon": "🐜", "hero": "Ant-Man", "reaction": "🔬 ANT-MAN: Gdzie to położyłem?! A, masz je. Nie wciśnij niebieskiego guzika!"},
+        {"name": "😼 Pazury Czarnej Pantery", "desc": "Królewski luksus. Wymień na: 15-minutowy masaż karku/stóp.", "cost": 800, "icon": "🐾", "hero": "Black Panther", "reaction": "👑 T'CHALLA: Nie zamarzam. I Ty też nie będziesz. Przyjmij to jako dar od Wakandy."},
+        {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 1120, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"}
+    ]
+}
+
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
     page_title="Dziennik Iglasty",
@@ -268,6 +296,51 @@ def calculate_game_state(score):
     owned_stones_count = max(0, cycle - 1)
     return int(cycle), int(owned_stones_count), int(cycle_progress)
 
+def calculate_currency(df, current_score, owned_stones):
+    """
+    Ekonomia Osiągnięć:
+    - Kliki: +5 (Standard) / +10 (Impreza) - liczone od początku (backpay).
+    - START (Prolog ukończony): +300 Kredytów (Grant na start sklepu).
+    - Kamienie: +200 kredytów za kamienie 1-5.
+    """
+    if df.empty: return 0
+    balance = 0
+    
+    # 1. Zarabianie na klikaniu (Baza)
+    for index, row in df.iterrows():
+        points = row.get('Punkty', 0)
+        note = str(row.get('Notatka', '')).strip()
+        
+        # Odejmujemy wydatki na zakupy
+        if "SHOP_BUY" in note:
+            try:
+                parts = note.split('|')
+                balance += int(parts[2]) # Koszt jest zapisany jako ujemny
+            except: pass
+        else:
+            # Dodajemy za kliki
+            if points >= 5: balance += 10    # Impreza
+            elif points > 0: balance += 5    # Standard
+            elif points < 0: balance += 1    # Pocieszenie
+            
+    # 2. BONUSY
+    if current_score >= 60: balance += 300 # Grant Startowy
+    
+    # Kamienie (max 5 płatnych)
+    stones_rewarded = min(owned_stones, 5)
+    balance += (stones_rewarded * 200)
+    
+    # Imprezy (staż)
+    try:
+        party_count = len(df[df['Tryb'] == True])
+    except KeyError: party_count = 0
+    
+    thresholds = [3, 6, 9, 12, 15]
+    for t in thresholds:
+        if party_count >= t: balance += 150
+
+    return max(0, balance)
+
 def get_smart_image_filename(cycle, owned_stones, cycle_progress):
     # Domyślne wartości
     level_num = 1
@@ -511,11 +584,79 @@ def main():
     level_img, level_desc = get_smart_image_filename(cycle, owned_stones, cycle_progress)
     daily_quote = get_daily_quote()
 
-    if owned_stones >= 6 and not st.session_state.snap_played:
+    # ==========================================
+# 🏁 PROTOKÓŁ KOŃCA GRY: NIESKOŃCZONOŚĆ 🏁
+# ==========================================
+# Sprawdzamy, czy Paweł zdobył wszystkie 6 kamieni.
+# Jeśli tak, przerywamy normalne działanie aplikacji i wyświetlamy ekran zwycięstwa.
+
+if owned_stones >= 6:
+    # 1. Muzyka Finałowa (Epicki motyw)
+    if os.path.exists("endgame_theme.mp3"):
+        # Autoplay + Loop, żeby grało w kółko podczas napawania się wygraną
+        st.audio("endgame_theme.mp3", autoplay=True, loop=True)
+    
+    # 2. Efekty Specjalne (Na bogato!)
+    st.balloons()
+    time.sleep(1)
+    st.snow() # Konfetti i śnieg na raz, bo stać nas!
+
+    # 3. Epicki Tytuł
+    st.markdown("""
+        <h1 style='text-align: center; color: gold; font-size: 60px; text-shadow: 2px 2px 4px #000000;'>
+            GRATULACJE!<br>WSZECHŚWIAT JEST TWOJEJ DŁONI!
+        </h1>
+    """, unsafe_allow_html=True)
+
+    # 4. GŁÓWNA GRAFIKA (Jeż + Ekipa)
+    victory_img = "hedgehog_victory_team.png"
+    if os.path.exists(victory_img):
+        st.image(
+            victory_img,
+            caption="„Ja... jestem... Jeżem.” – Paweł, Władca Nieskończoności.",
+            use_container_width=True # Rozciąga na pełną szerokość kontenera
+        )
+    else:
+        st.warning("⚠️ Brakuje pliku: hedgehog_victory_team.png. Ale i tak wygrałeś!")
+
+    # 5. Podsumowanie
+    st.success("""
+        Dokonałeś niemożliwego. Zebrałeś wszystkie 6 Kamieni Nieskończoności.
+        Rocket jest w szoku, Drax myśli, że jesteś bogiem, a Deadpool...
+        cóż, Deadpool próbuje ukraść Rękawicę.
+    """)
+    
+    st.markdown("---")
+    st.markdown("### Co teraz, Władco?")
+
+# 6. Przycisk Resetu (Nowa Gra / Prestige Mode)
+    # Poprawiona nazwa: PSTRYKNIJ
+    if st.button("🔄 PSTRYKNIJ PALCAMI (Zresetuj Wszechświat i Zacznij Od Nowa)", type="primary"):
+        
+        # A. Dźwięk Pstryknięcia (The Snap)
         if os.path.exists(SNAP_SOUND_FILE):
             st.audio(SNAP_SOUND_FILE, format="audio/mp3", autoplay=True)
-            st.toast("🫰 PSTRYK! Równowaga przywrócona.")
-            st.session_state.snap_played = True
+        
+        # B. Komunikat
+        st.toast("🫰 Pstryk! Równowaga przywrócona...")
+        
+        # C. Czyścimy pamięć podręczną sesji
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        
+        # D. Czekamy chwilę, żeby dźwięk wybrzmiał (3 sekundy)
+        time.sleep(3.0)
+        st.rerun()
+
+    # 🛑 KLUCZOWE: Zatrzymujemy resztę aplikacji! 🛑
+    # Dzięki temu nie wyświetli się reszta gry (przyciski, sidebar itp.)
+    
+    st.stop()
+
+# ==========================================
+# KONIEC PROTOKOŁU KOŃCA GRY
+# (Dalej leci normalny kod aplikacji...)
+# ==========================================
 
     with st.sidebar:
         if cycle == 0:
@@ -564,6 +705,80 @@ def main():
         if not DEFAULT_API_KEY:
              st.error("Błąd konfiguracji Secrets! Sprawdź klucze.")
 
+# 2. 🏆 GABLOTA TROFEÓW 2.0 (SKALOWANIE DO 15)
+    with st.expander("🏆 Gablota Trofeów"):
+        
+        # --- SEKCJA 1: PROLOG ---
+        st.markdown("### 🌍 Prolog")
+        prolog_achievements = []
+        if current_score >= 15: prolog_achievements.append("🚶 Obieżyświat (Lv 1)")
+        if current_score >= 30: prolog_achievements.append("🏃 Poszukiwacz (Lv 2)")
+        if current_score >= 45: prolog_achievements.append("⚔️ Wojownik (Lv 3)")
+        if current_score >= 60: prolog_achievements.append("🦸‍♂️ BOHATER (Prolog Ukończony)")
+        
+        if not prolog_achievements:
+            st.caption("Jeszcze nic. Ruszaj w drogę!")
+        else:
+            for ach in prolog_achievements:
+                st.success(ach)
+
+        # --- SEKCJA 2: SKARBIEC ---
+        st.markdown("---")
+        st.markdown("### 💎 Skarbiec Nieskończoności")
+        
+        vault_achievements = []
+        if owned_stones >= 1: vault_achievements.append("🟦 Władca Przestrzeni (Kamień 1)")
+        if owned_stones >= 2: vault_achievements.append("🟥 Zaklinacz Rzeczywistości (Kamień 2)")
+        if owned_stones >= 3: vault_achievements.append("🟪 Potęga Absolutna (Kamień 3)")
+        if owned_stones >= 4: vault_achievements.append("🟨 Geniusz Umysłu (Kamień 4)")
+        if owned_stones >= 5: vault_achievements.append("🟧 Handlarz Dusz (Kamień 5)")
+        if owned_stones >= 6: vault_achievements.append("🟩 PAN CZASU (Wszystkie Kamienie!)")
+        
+        if not vault_achievements:
+            st.caption("Skarbiec jest pusty. Zdobądź pierwszy kamień!")
+        else:
+            for ach in vault_achievements:
+                st.info(ach)
+
+        # --- SEKCJA 3: TRYB IMPREZA (NOWA SKALA MAX 15) ---
+        st.markdown("---")
+        st.markdown("### 🍺 Tryb Impreza")
+        
+        try:
+            party_df = df[df['Tryb'] == True]
+            party_count = len(party_df)
+            party_fails = len(party_df[party_df['Punkty'] < 0])
+        except KeyError:
+            party_count = 0
+            party_fails = 0
+        
+        # A. POZYTYWNE (ILOŚĆ UŻYĆ) - Skala 3-15
+        party_badges = []
+        if party_count >= 3: party_badges.append("🥂 Rozgrzewka (3 imprezy)")
+        if party_count >= 6: party_badges.append("🕺 Król Parkietu (6 imprez)")
+        if party_count >= 9: party_badges.append("🔥 Legenda Afterparty (9 imprez)")
+        if party_count >= 12: party_badges.append("👑 Celebryta (12 imprez)")
+        if party_count >= 15: party_badges.append("⚡ BÓG DIONIZOS (15 imprez)")
+
+        if party_badges:
+            for badge in party_badges:
+                st.warning(badge)
+        else:
+            st.caption(f"Licznik imprez: {party_count}/3 (Wbijaj pierwszy level!)")
+
+        # B. NEGATYWNE (WPADKI) - Skala 1-15
+        if party_fails > 0:
+            st.markdown("**☠️ Ale Urwał... (Wpadki)**")
+            fail_badges = []
+            
+            if party_fails >= 1: fail_badges.append("🤢 O jeden shot za dużo")
+            if party_fails >= 5: fail_badges.append("🚑 Stały Klient SOR-u")
+            if party_fails >= 10: fail_badges.append("🧟 Wrak Człowieka")
+            if party_fails >= 15: fail_badges.append("💀 Wątroba z Kartonu")
+            
+            for fail in fail_badges:
+                st.error(fail)
+        
         st.write("---")
         st.header("🔔 Przypomnienia")
         st.caption("Kliknij, aby dodać do kalendarza:")
@@ -589,58 +804,131 @@ def main():
     st.caption("System operacyjny życia po trzydziestce.")
 
     st.markdown("---")
-# --- NOWA SEKCJA WYŚWIETLANIA (Zastępuje kolumny col_img/col_stat) ---
-    st.markdown("---")
+# ====================================================================
+# 🖥️ INTERFEJS GŁÓWNY: ZAKŁADKI (UKRYTY SKLEP)
+# ====================================================================
+
+# 1. Definiujemy zakładki DYNAMICZNIE (Sklep ukryty w Prologu)
+if current_score >= 60:
+    # Wersja pełna (3 zakładki)
+    tab1, tab2, tab3 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki", "🛒 Sklep"])
+else:
+    # Wersja demo (2 zakładki - Sklep jest niewidzialny)
+    tab1, tab2 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki"])
+    tab3 = None # Zmienna pusta, żeby kod się nie wywalił
+
+# --- ZAKŁADKA 1: MISJA DNIA ---
+with tab1:
+    st.header("🎬 Dziennik Iglasty")
     
-    # 1. ETAP SKARBCA (60+ PKT)
+    # A. ETAP SKARBCA (60+ PKT)
     if current_score >= 60:
-        # cycle_progress to licznik punktów w ramach obecnego kamienia (0-60)
-        # Został obliczony wyżej w funkcji calculate_game_state
-        progress_in_stone = cycle_progress 
+        progress_in_stone = cycle_progress
         
-        # LOGIKA 3 STANÓW WALKI (Co 20 pkt)
         if progress_in_stone < 20:
             treasury_state = "Stan: PRZYGOTOWANIE 🧘"
         elif progress_in_stone < 40:
             treasury_state = "Stan: WALKA TRWA ⚔️"
         else:
-            treasury_state = "Stan: FATALITY 🩸💀"
-
-        # Wyświetlamy duży nagłówek stanu
+            treasury_state = "Stan: FATALITY 🩸"
+            
         st.subheader(treasury_state)
         
-        # Wyświetlamy obrazek (używamy zmiennej level_img, która jest już wyliczona wyżej)
         if os.path.exists(level_img):
             st.image(level_img, caption=f"Walka o Kamień: {owned_stones + 1}/6")
         else:
             st.info(f"Walka o Kamień numer {owned_stones + 1}")
+            
+        boss_hp_percent = 1.0 - (progress_in_stone / 60.0)
+        boss_hp_percent = max(0.0, min(1.0, boss_hp_percent))
+        st.progress(boss_hp_percent, text=f"HP BOSSA: {int(boss_hp_percent * 100)}%")
 
-        # Pasek postępu dla AKTUALNEGO kamienia
-        st.progress(progress_in_stone / 60.0, text=f"Postęp: {int(progress_in_stone)}/60 pkt")
-
-    # 2. ETAP PROLOGU (0-59 PKT)
+    # B. ETAP PROLOGU (0-59 PKT)
     else:
-        # Logika 4 etapów (Twoja wersja)
         prolog_stage_index = int(current_score // 15)
         prolog_stage_index = min(prolog_stage_index, 3)
         
-        # Twoje pliki i nazwy
         prolog_images = ["level_1.png", "level_2.png", "level_3.png", "level_4.png"]
-        prolog_states = ["Stan: OBIEŻYŚWIAT 🌍", "Stan: NADZIEJA ✨", "Stan: WOJOWNIK 🗡️", "Stan: BOHATER 🦸‍♂️"]
+        prolog_states = ["Stan: OBIEŻYŚWIAT 🌍", "Stan: NADZIEJA ✨", "Stan: WOJOWNIK ⚔️", "Stan: BOHATER 🦸"]
         
-        # Wyświetlamy Stan i Obrazek
         st.subheader(prolog_states[prolog_stage_index])
         
         current_prolog_img = prolog_images[prolog_stage_index]
         if os.path.exists(current_prolog_img):
-            # Usunąłem argument caption=...
             st.image(current_prolog_img)
         else:
-            st.warning(f"Brak pliku: {current_prolog_img} (Wrzuć go do folderu!)")
+            st.warning(f"Brak pliku: {current_prolog_img}")
+            
+        explore_percent = current_score / 60.0
+        explore_percent = max(0.0, min(1.0, explore_percent))
+        st.progress(explore_percent, text=f"Eksploracja Świata: {int(explore_percent * 100)}%")
 
-        st.progress(current_score / 60.0, text=f"Prolog: {current_score}/60 pkt")
-
+# --- ZAKŁADKA 2: STATYSTYKI ---
+with tab2:
+    st.header("📊 Raport Agenta")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Całkowity EXP", f"{current_score}")
+    c2.metric("Kamienie", f"{owned_stones}/6")
+    c3.metric("Seria Dni", f"{streak_count} 🔥")
+    
     st.markdown("---")
+    
+    if not df.empty:
+        st.subheader("📈 Historia Aktywności")
+        try:
+            chart_data = df[['Data', 'Punkty']].copy()
+            chart_data = chart_data.groupby('Data')['Punkty'].sum().reset_index()
+            st.line_chart(chart_data, x='Data', y='Punkty')
+        except:
+            st.caption("Za mało danych na wykres.")
+
+# --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
+if tab3 is not None:
+    with tab3:
+        st.header("🛒 Czarny Rynek Artefaktów")
+        
+        # 1. Portfel
+        wallet = calculate_currency(df, current_score, owned_stones)
+        st.metric(label="Dostępne Środki", value=f"{wallet} 🪙", delta="Kredyty Galaktyczne")
+        st.markdown("---")
+        
+        # 2. LOGIKA ROTACJI
+        current_month = datetime.now().month
+        shop_rotation_index = ((current_month + 10) // 2) % 3
+        current_offer = SHOP_INVENTORY.get(shop_rotation_index, [])
+        rotation_names = ["Strażnicy & Najemnicy", "Avengers Assemble", "Magia & Kosmos"]
+        
+        st.info(f"📦 Obecna dostawa: **{rotation_names[shop_rotation_index]}**")
+        st.caption("Oferta zmienia się co 2 miesiące.")
+
+        # 3. Lista Artefaktów
+        for item in current_offer:
+            c1, c2, c3 = st.columns([1, 3, 2])
+            with c1:
+                st.markdown(f"<div style='font-size: 50px; text-align: center;'>{item['icon']}</div>", unsafe_allow_html=True)
+            with c2:
+                st.subheader(item['name'])
+                st.caption(item['desc'])
+                st.markdown(f"**Bohater:** {item['hero']}")
+            with c3:
+                price = item['cost']
+                if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
+                    if wallet >= price:
+                        note_content = f"SHOP_BUY | {item['name']} | -{price}"
+                        save_to_sheets("ZAKUP", 0, "Sklep", False, note_content)
+                        st.balloons()
+                        st.success(f"✅ Kupiłeś: {item['name']}")
+                        st.info(item['reaction']) 
+                        if os.path.exists("chaos_event.mp3"):
+                            st.audio("chaos_event.mp3", autoplay=True)
+                        time.sleep(4)
+                        st.rerun()
+                    else:
+                        st.error(f"Brakuje ci {price - wallet} kredytów!")
+            st.markdown("---")
+
+st.markdown("---")
+# (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
     col_note, col_toggle = st.columns([3, 1])
     with col_note:
         user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
@@ -728,7 +1016,103 @@ def main():
             time.sleep(2.5)
             st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
         # ----------------------------------------------------
+# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA PRECYZYJNA) 🎵 ---
+        delay_time = 2.5  # Domyślny, krótki czas (dla komentarzy Rocketa)
 
+        # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
+        if points > 0:
+            
+            if st.session_state.party_mode:
+                # --- SCENARIUSZ: IGLICA (IMPREZA) ---
+                # WYMAGANIE: Zgryźliwy ale z podziwem komentarz Rocketa (bez efektów)
+                rocket_respect = [
+                    "🦝 ROCKET: Ty chory draniu... udało ci się.",
+                    "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu, a jednak.",
+                    "🦝 ROCKET: Jesteś świrem. Szanuję to.",
+                    "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie.",
+                    "🦝 ROCKET: Co za fart. Następnym razem wybuchniesz."
+                ]
+                st.success(random.choice(rocket_respect))
+                # Zostawiamy krótki czas (2.5s) i brak muzyki/gifa
+            
+            else:
+                # --- SCENARIUSZ: IGLICA (STANDARD) ---
+                # WYMAGANIE: Losowanie Starlord/Deadpool (Muzyka + GIF + 10s)
+                iglica_options = [
+                    ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
+                    ("deadpool_dance.gif", "deadpool_music.mp3", "💃 BYE BYE! Deadpool przejmuje show!")
+                ]
+                
+                chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
+                
+                # Odpalamy Show
+                if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
+                    st.audio(chosen_audio, autoplay=True)
+                    st.markdown("---")
+                    st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
+                    delay_time = 11.0 # Wydłużamy czas na show
+
+        # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
+        elif points < 0:
+            
+            if st.session_state.party_mode:
+                # --- SCENARIUSZ: IGLISKO (IMPREZA) ---
+                # WYMAGANIE: Thor (Muzyka + GIF + 10s)
+                if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
+                    st.audio("thor_drunk.mp3", autoplay=True)
+                    st.markdown("---")
+                    st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien...", use_container_width=True)
+                    delay_time = 11.0 # Wydłużamy czas na show dla Thora
+            
+            else:
+                # --- SCENARIUSZ: IGLISKO (STANDARD) ---
+                # WYMAGANIE: Nieznośny komentarz Rocketa (bez efektów)
+                rocket_insults = [
+                    "🦝 ROCKET: Gratulacje, geniuszu. Obniżyłeś IQ całego statku.",
+                    "🦝 ROCKET: Groot by to lepiej wybrał. A on jest drzewem.",
+                    "🦝 ROCKET: Nie dotykaj niczego więcej, błagam.",
+                    "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał.",
+                    "🦝 ROCKET: Potrzebuję twojej protezy... za karę."
+                ]
+                st.error(random.choice(rocket_insults))
+
+# --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
+        # Działa na każdą opcję. Szansa 5%.
+        # Losuje modyfikator: -2 (Pech), 0 (Bez zmian), +2 (Fart)
+        chaos_change = 0
+        
+        if random.random() < 0.05: # 5% szans na uruchomienie koła
+            
+            # Losujemy jedną z 3 opcji
+            wheel_options = [-2, 0, 2]
+            chaos_change = random.choice(wheel_options)
+            
+            # Aktualizujemy punkty
+            points += chaos_change
+            
+            # Wspólny efekt dźwiękowy dla "Zdarzenia Chaosu" (jeśli plik istnieje)
+            # Używamy tego samego dźwięku, żeby zasygnalizować "System coś wylosował"
+            if os.path.exists("chaos_event.mp3"):
+                st.audio("chaos_event.mp3", autoplay=True)
+                # Wydłużamy nieco czas, żeby dźwięk zdążył wybrzmieć, jeśli inne są krótkie
+                if delay_time < 4.0: delay_time = 4.0
+
+            # --- SCENARIUSZ 1: FART (+2) ---
+            if chaos_change > 0:
+                st.toast(f"🎰 KOŁO FORTUNY: FART! Bonus +{chaos_change} pkt!", icon="🍀")
+                st.balloons()
+
+            # --- SCENARIUSZ 2: PECH (-2) ---
+            elif chaos_change < 0:
+                st.toast(f"🎰 KOŁO FORTUNY: PECH! Tracisz {abs(chaos_change)} pkt!", icon="💀")
+                # Tu usuwamy Deadpoola. Pech to po prostu ból wizualny (i strata pkt).
+
+            # --- SCENARIUSZ 3: BEZ ZMIAN (0) ---
+            else:
+                st.toast("🎰 KOŁO FORTUNY: UFF... Przeszło obok. (0 zmian)", icon="😅")
+
+            # Dodajemy info do notatki
+            user_note += f" [KOŁO: {chaos_change:+d}]"
         # --- DALEJ LECI TWÓJ STARY KOD (EASTER EGGS I ZAPIS) ---
         code_word = user_note.strip().lower()
         # ... (reszta kodu: chimichanga, zapis do sheets itd.)
@@ -826,21 +1210,36 @@ def main():
                 if old_cycle == 0 and new_cycle == 1:
                     st.session_state.show_vault_animation = True
                 
-                st.rerun()
+# --- 💰 POWIADOMIENIE O KREDYTACH (TYLKO PO ODBLOKOWANIU SKLEPU) ---
+        new_total_score = current_score + points 
+        if new_total_score >= 60:
+            earned_credits = 0
+            if points >= 5: earned_credits = 10 
+            elif points > 0: earned_credits = 5
+            elif points < 0: earned_credits = 1
+            
+            if earned_credits > 0:
+                time.sleep(0.5) 
+                st.toast(f"💳 Zaksięgowano: +{earned_credits} kredytów!", icon="🤑")
 
-    if st.session_state.last_comment:
-        if st.session_state.last_points_change >= 3:
-             st.success(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
-        else:
-             st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
+        # --- FINALIZACJA ---
+        time.sleep(delay_time) 
+        st.rerun()
 
-    with st.expander("📜 Historia wpisów (z Chmury)"):
-        if not df.empty:
-            # Sortujemy tak, żeby najnowsze były na górze
-            st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
+if st.session_state.last_comment:
+    if st.session_state.last_points_change >= 3:
+         st.success(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
+    else:
+        st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
+
+with st.expander("📜 Historia wpisów (z Chmury)"):
+    if not df.empty:
+        # Sortujemy tak, żeby najnowsze były na górze
+        st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
 
 if __name__ == "__main__":
-    main()
+main()
+
 
 
 

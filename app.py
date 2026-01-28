@@ -646,6 +646,9 @@ def main():
                     new_owned, 
                     user_note, 
                     st.session_state.party_mode
+                    df,
+                    streak_count,
+                    streak_type
                 )
                 
                 # ZAPIS DO GOOGLE SHEETS
@@ -668,6 +671,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

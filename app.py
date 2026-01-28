@@ -645,7 +645,7 @@ def main():
                     new_total, 
                     new_owned, 
                     user_note, 
-                    st.session_state.party_mode
+                    st.session_state.party_mode,
                     df,
                     streak_count,
                     streak_type
@@ -671,6 +671,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

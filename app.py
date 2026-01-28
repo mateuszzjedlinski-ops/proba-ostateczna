@@ -625,9 +625,10 @@ def main():
         
         current_prolog_img = prolog_images[prolog_stage_index]
         if os.path.exists(current_prolog_img):
-            st.image(current_prolog_img, caption=f"Poziom {prolog_stage_index + 1}/4")
+            # Usunąłem argument caption=...
+            st.image(current_prolog_img)
         else:
-             st.warning(f"Brak pliku: {current_prolog_img} (Wrzuć go do folderu!)")
+            st.warning(f"Brak pliku: {current_prolog_img} (Wrzuć go do folderu!)")
 
         st.progress(current_score / 60.0, text=f"Prolog: {current_score}/60 pkt")
 
@@ -788,6 +789,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

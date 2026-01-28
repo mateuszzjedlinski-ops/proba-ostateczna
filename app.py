@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 import google.generativeai as genai
 import pandas as pd
 from datetime import datetime, timedelta
@@ -584,6 +585,51 @@ def main():
 
     if selected:
         status, points = selected
+        
+        # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
+        code_word = user_note.strip().lower()
+
+        # 1. THE THANOS SNAP (Fake Delete)
+        if code_word == "thanos":
+            with st.spinner("⚠️ WYKRYTO ZAGROŻENIE..."):
+                time.sleep(1)
+            
+            # Pasek postępu kasowania
+            progress_text = "Usuwanie bazy danych..."
+            my_bar = st.progress(0, text=progress_text)
+
+            for percent_complete in range(100):
+                time.sleep(0.02) # Szybkość kasowania
+                my_bar.progress(percent_complete + 1, text=f"Kasowanie wspomnień: {percent_complete}%")
+            
+            st.error("💀 BAZA DANYCH USUNIĘTA TRWALE.")
+            time.sleep(2)
+            st.toast("🫰 Pstryk... Żartowałem. Masz szczęście.")
+            time.sleep(1)
+            my_bar.empty() # Czyści pasek
+
+        # 2. SŁABE HASŁA (Wyśmiewanie)
+        elif code_word in ["admin", "hasło", "1234", "password"]:
+            st.toast("🔒 Serio? Takie hasło?")
+            time.sleep(1.5)
+            st.toast("🤦‍♂️ Mój kalkulator ma lepsze zabezpieczenia.")
+            time.sleep(1.5)
+            st.toast("🦔 Żenujące. Odejmuję 0 punktów tylko z litości.")
+
+        # 3. SELF-DESTRUCT (Deadpool style)
+        elif code_word == "autodestrukcja":
+            st.warning("💣 Autodestrukcja za 3...")
+            time.sleep(1)
+            st.warning("💣 2...")
+            time.sleep(1)
+            st.warning("💣 1...")
+            time.sleep(1)
+            st.success("💥 BUM! (Nie mieliśmy budżetu na efekty specjalne).")
+        
+        # --- KONIEC EASTER EGGS ---
+
+        if not DEFAULT_API_KEY:
+             # ... (reszta Twojego kodu leci dalej)
         if not DEFAULT_API_KEY:
             st.error("Brak konfiguracji API!")
         else:
@@ -621,6 +667,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

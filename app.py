@@ -302,7 +302,7 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
 def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode, df, streak_count, streak_type):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-pro")
         
         # 1. Analiza wpisów z dzisiaj
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -671,6 +671,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

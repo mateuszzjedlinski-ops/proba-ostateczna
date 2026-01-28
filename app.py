@@ -598,7 +598,7 @@ def main():
             progress_text = "Usuwanie bazy danych..."
             my_bar = st.progress(0, text=progress_text)
 
-            for percent_complete in range(100):
+    for percent_complete in range(100):
                 time.sleep(0.02) # Szybkość kasowania
                 my_bar.progress(percent_complete + 1, text=f"Kasowanie wspomnień: {percent_complete}%")
             
@@ -667,6 +667,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

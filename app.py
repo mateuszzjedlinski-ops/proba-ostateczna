@@ -223,16 +223,10 @@ def save_to_sheets(status, points, comment, party_mode, note):
     except Exception as e:
         st.error(f"Błąd zapisu do arkusza: {e}")
 
-def get_monthly_score(df):
+def get_total_score(df):
     if df.empty: return 0
-    try:
-        current_month = datetime.now().strftime("%Y-%m")
-        # Zakładamy format YYYY-MM-DD
-        df['Month'] = df['Data'].apply(lambda x: str(x)[:7]) 
-        monthly_df = df[df['Month'] == current_month]
-        return monthly_df['Punkty'].sum()
-    except:
-        return 0
+    # Sumujemy wszystkie punkty z całej historii
+    return df['Punkty'].sum()
 
 def calculate_current_streak(df):
     if df.empty: return 0, "neutral"
@@ -554,5 +548,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

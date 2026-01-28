@@ -929,8 +929,8 @@ if tab3 is not None:
 
 st.markdown("---")
 # (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
-    col_note, col_toggle = st.columns([3, 1])
-    with col_note:
+col_note, col_toggle = st.columns([3, 1])
+with col_note:
         user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
     with col_toggle:
         st.write("")
@@ -1239,6 +1239,7 @@ with st.expander("📜 Historia wpisów (z Chmury)"):
 
 if __name__ == "__main__":
     main()
+
 
 
 

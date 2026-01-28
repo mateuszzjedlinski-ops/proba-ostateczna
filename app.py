@@ -552,15 +552,34 @@ with col_toggle:
     cols = st.columns(5)
     selected = None
     
+# --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
+    # Sprawdzamy stan przełącznika bezpośrednio z session_state
+    if st.session_state.party_mode:
+        # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
+        score_iglica = 5
+        score_igla = 2
+        score_iglik = 0
+        score_iglute = -6
+        score_iglisko = -12
+    else:
+        # TRYB STANDARD: Zbalansowany rozwój
+        score_iglica = 3
+        score_igla = 1
+        score_iglik = 0
+        score_iglute = -2
+        score_iglisko = -4
+
+    # Definicja przycisków z dynamicznymi punktami
     buttons = [
-        (f"🗻 IGLICA", "IGLICA", 3, cols[0]),
-        (f"💎 IGŁA", "IGŁA", 1, cols[1]),
-        (f"🌿 IGLIK", "IGLIK", 0, cols[2]),
-        (f"🍂 IGLUTEK", "IGLUTEK", -2, cols[3]),
-        (f"💀 IGLISKO", "IGLISKO", -4, cols[4])
+        (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
+        (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
+        (f"🌿 IGLIK", "IGLIK", score_iglik, cols[2]),
+        (f"🍂 IGLUTEK", "IGLUTEK", score_iglute, cols[3]),
+        (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
     ]
 
     for label, status, points, col in buttons:
+        # Wyświetlamy punkty na przycisku (np. "+5" lub "-12")
         if col.button(f"{label}\n({points:+})", use_container_width=True):
             selected = (status, points)
 
@@ -603,6 +622,7 @@ with col_toggle:
 
 if __name__ == "__main__":
     main()
+
 
 
 

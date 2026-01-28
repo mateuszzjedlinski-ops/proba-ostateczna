@@ -298,11 +298,28 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
     else:
         return f"level_{level_num}.png", desc
 
-def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode):
+def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode, df, streak_count, streak_type):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         
+        # 1. Analiza wpisów z dzisiaj
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        today_history = ""
+        
+        if not df.empty:
+            today_df = df[df['Data'] == today_str].sort_values(by='Godzina')
+            if not today_df.empty:
+                entries = []
+                for _, row in today_df.iterrows():
+                    entries.append(f"{row['Godzina']} -> {row['Stan']} ({row['Punkty']} pkt)")
+                today_history = "\n".join(entries)
+            else:
+                today_history = "To pierwszy wpis dzisiaj."
+        else:
+            today_history = "Brak historii."
+
+        # 2. Kamienie
         stone_text = ""
         if total_score >= 60:
             stone_name = "Brak"
@@ -312,30 +329,68 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         else:
             stone_text = "Etap: PROLOG (Tutorial). Kamienie: Ukryte."
 
+# 3. DEFINICJA OSOBOWOŚCI
+        personality = ""
+        
         if party_mode:
-            instruction = """
-            TRYB IMPREZA WŁĄCZONY! 🚨🍻🕺
-            Zmień osobowość! Jesteś teraz wstawionym, euforycznym i chaotycznym jeżem.
-            Używaj dużo emoji (🎉🔥🍺), krzycz (CAPSLOCK), proponuj toasty.
-            Nie obchodzą cię punkty, liczy się VIBE.
-            """
+            # --- TRYB IMPREZA (Thor vs Rocket) ---
+            if points < 0:
+                # Pijany, smutny Thor (Endgame)
+                personality = """
+                TRYB: PIJANY THOR (ENDGAME). 🍺😭
+                Paweł stracił punkty na imprezie.
+                - Jesteś totalnie pijany, płaczliwy i zrezygnowany.
+                - PATRZ NA HISTORIĘ Z DZISIAJ ("KONTEKST"):
+                  * Jeśli rano szło mu dobrze -> Płacz głośniej: "RANO BYŁO TAK PIĘKNIE, DLACZEGO TO ZEPSUŁEŚ?!".
+                  * Jeśli to kolejna wtopa -> "Jesteśmy beznadziejni...".
+                - Krzycz: "CZY JA JESZCZE JESTEM GODNY?!".
+                - Narzekaj na wszystko, proś o Krwawą Mary albo sery w sprayu.
+                """
+            else:
+                # Pijany, agresywny Rocket
+                personality = """
+                TRYB: PIJANY ROCKET RACCOON. 🦝🔥
+                Paweł zdobył punkty na imprezie.
+                - Jesteś euforyczny, agresywny i głośny.
+                - PATRZ NA HISTORIĘ Z DZISIAJ ("KONTEKST"):
+                  * Jeśli ma passę zwycięstw -> "NIKT CIĘ NIE ZATRZYMA! ROZWALASZ SYSTEM!".
+                  * Jeśli wcześniej było źle, a teraz dobrze -> "W KOŃCU SIĘ OBUDZIŁEŚ! PIJEMY!".
+                - Wznosisz toasty CAPS LOCKIEM.
+                - Krzycz: "JESTEŚ BOGIEM! TERAZ UKRADNIJ KOMUŚ NOGĘ!".
+                """
         else:
-            instruction = "Zachowaj standardową osobowość (Sarkastyczny mix Deadpoola i Rocketa). Bądź złośliwy."
+            # --- TRYB STANDARD (Deadpool + Rocket Mix) ---
+            # (Tutaj zostaje bez zmian, bo jest dobrze)
+            personality = """
+            TRYB: DEADPOOL + ROCKET RACCOON (Sarkastyczny Obserwator). ⚔️🦝
+            - Twoim zadaniem jest komentowanie postępów w grze RPG "Życie po 30-tce".
+            - Łam czwartą ścianę, bądź cyniczny, bystry i złośliwy.
+            - ANALIZUJ HISTORIĘ Z DZISIAJ: Spójrz na sekcję "KONTEKST".
+              * Jeśli rano miał więcej pkt, a teraz mniej -> Wyśmiej spadek formy ("Rano lew, wieczorem... to?").
+              * Jeśli utrzymuje passę sukcesów -> Bądź podejrzliwy ("Za dobrze ci idzie, co kombinujesz?").
+              * Jeśli kolejna wtopa -> "Konsekwentnie dążysz do dna. Szanuję."
+            - Nie bądź płaczliwy (to rola Thora). Bądź cwaniakiem.
+            """
 
         user_prompt = f"""
-        SYTUACJA:
-        Paweł wybrał: {status} ({points} pkt).
-        Notatka użytkownika: "{note}"
+        DANE WEJŚCIOWE:
+        Wybór Pawła: {status} ({points} pkt).
+        Notatka: "{note}"
         
-        STATUS GRY:
-        Całkowite punkty: {total_score}.
+        KONTEKST (Co robił wcześniej dzisiaj):
+        {today_history}
+        
+        STATYSTYKI:
+        Passa (Combo): {streak_count} (Typ: {streak_type})
+        Całkowite punkty: {total_score}
         {stone_text}
         
-        INSTRUKCJA SPECJALNA:
-        {instruction}
+        TWOJA ROLA (Postępuj zgodnie z tym opisem):
+        {personality}
         
-        Napisz krótki komentarz.
+        Napisz krótki komentarz (max 2-3 zdania).
         """
+        
         response = model.generate_content([
             {"role": "user", "parts": [SYSTEM_PROMPT]},
             {"role": "user", "parts": [user_prompt]}
@@ -486,12 +541,12 @@ def main():
     col_note, col_toggle = st.columns([3, 1])
     with col_note:
         user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
-    with col_toggle:
+with col_toggle:
         st.write("")
         st.write("")
-        party_mode_new = st.toggle("Tryb Impreza 🔥", value=st.session_state.party_mode)
-        if party_mode_new != st.session_state.party_mode:
-            st.session_state.party_mode = party_mode_new
+        # Parametr key="party_mode" automatycznie łączy przełącznik z pamięcią.
+        # Nie trzeba pisać instrukcji if - Streamlit sam to obsłuży.
+        st.toggle("Tryb Impreza 🔥", key="party_mode")
 
     st.write("")
     cols = st.columns(5)
@@ -548,6 +603,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

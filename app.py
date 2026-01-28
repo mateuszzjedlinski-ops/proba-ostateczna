@@ -544,16 +544,15 @@ def main():
 with col_toggle:
         st.write("")
         st.write("")
-        # Parametr key="party_mode" automatycznie łączy przełącznik z pamięcią.
-        # Nie trzeba pisać instrukcji if - Streamlit sam to obsłuży.
+        # Parametr key="party_mode" łączy przełącznik z pamięcią
         st.toggle("Tryb Impreza 🔥", key="party_mode")
 
     st.write("")
     cols = st.columns(5)
     selected = None
-    
-# --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
-    # Sprawdzamy stan przełącznika bezpośrednio z session_state
+
+    # --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
+    # To jest ten nowy fragment, który wklejasz
     if st.session_state.party_mode:
         # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
         score_iglica = 5
@@ -622,6 +621,7 @@ with col_toggle:
 
 if __name__ == "__main__":
     main()
+
 
 
 

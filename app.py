@@ -590,6 +590,19 @@ def main():
         # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
         code_word = user_note.strip().lower()
 
+        # A. CHIMICHANGA (SPAM ATAK)
+        if code_word == "chimichanga":
+            # Zamiast balonów -> Seria szybkich, chaotycznych powiadomień
+            st.toast("🌮 OOO TAAAAK!")
+            time.sleep(0.4)
+            st.toast("🌯 CHIMI-")
+            time.sleep(0.4)
+            st.toast("🔥 -F***ING-")
+            time.sleep(0.4)
+            st.toast("🥑 -CHANGA!!!")
+            time.sleep(0.5)
+            st.info("🤤 Właśnie wirtualnie zjadłeś 5000 kalorii. Warto było.")
+
         # A. THE THANOS SNAP (Fake Delete)
         if code_word == "thanos":
             with st.spinner("⚠️ WYKRYTO ZAGROŻENIE..."):
@@ -671,6 +684,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

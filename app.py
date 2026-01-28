@@ -541,7 +541,7 @@ def main():
     col_note, col_toggle = st.columns([3, 1])
     with col_note:
         user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
-with col_toggle:
+    with col_toggle:
         st.write("")
         st.write("")
         # Parametr key="party_mode" łączy przełącznik z pamięcią
@@ -621,6 +621,7 @@ with col_toggle:
 
 if __name__ == "__main__":
     main()
+
 
 
 

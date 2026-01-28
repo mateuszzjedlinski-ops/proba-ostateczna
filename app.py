@@ -293,6 +293,8 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
             desc = f"Cel: Kamień {target_name} | Forma: {level_name}"
         else:
             desc = f"BÓG | Forma: {level_name}"
+            
+    return filename, desc
 
 # --- FUNKCJA ANIMACJI CYBER-SCANNER (HYBRYDA) ---
 def play_level_up_animation(new_cycle):
@@ -786,6 +788,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

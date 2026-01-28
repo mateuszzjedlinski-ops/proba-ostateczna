@@ -370,7 +370,7 @@ def main():
     
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
-    current_score = get_monthly_score(df)
+    current_score = get_total_score(df)
     streak_count, streak_type = calculate_current_streak(df)
     
     cycle, owned_stones, cycle_progress = calculate_game_state(current_score)
@@ -554,4 +554,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

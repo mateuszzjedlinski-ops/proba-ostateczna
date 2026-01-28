@@ -307,7 +307,7 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
 def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         
         stone_text = ""
         if total_score >= 60:
@@ -554,3 +554,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

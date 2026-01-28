@@ -269,31 +269,39 @@ def calculate_game_state(score):
     return int(cycle), int(owned_stones_count), int(cycle_progress)
 
 def get_smart_image_filename(cycle, owned_stones, cycle_progress):
+    # Domyślne wartości
     level_num = 1
-    level_name = "KRET"
-    
-    if cycle_progress < 10:
-        level_num = 2
-        level_name = "POSPOLITY"
-    elif cycle_progress < 45:
-        level_num = 3
-        level_name = "BOJOWY"
-    else:
-        level_num = 4
-        level_name = "IMPERATOR"
+    level_name = "NIEZNANY"
 
-    if cycle == 0:
-        filename = f"level_{level_num}.png"
-        desc = f"PROLOG | Poziom: {level_name}"
+    # LOGIKA DLA SKARBCA (3 ETAPY WALKII)
+    # Musi być zgodna z tym co masz w main: <20, <40, reszta
+    if cycle_progress < 20:
+        level_num = 1
+        level_name = "PRZYGOTOWANIE"
+    elif cycle_progress < 40:
+        level_num = 2
+        level_name = "WALKA"
     else:
-        filename = f"s{owned_stones}_lvl{level_num}.png"
-        target_stone_idx = owned_stones 
+        level_num = 3
+        level_name = "FATALITY"
+
+    # --- GENEROWANIE NAZWY PLIKU ---
+    if cycle == 0:
+        # Prolog ma swoją osobną logikę w main(), ale dla bezpieczeństwa:
+        filename = f"level_{level_num}.png"
+        desc = f"PROLOG | Status: {level_name}"
+    else:
+        # SKARBIEC: Np. 0_lvl1.png (Kamień 0, Etap 1)
+        filename = f"{owned_stones}_lvl{level_num}.png"
+        
+        # Opis do debugowania / tooltipa
+        target_stone_idx = owned_stones
         if target_stone_idx < len(INFINITY_STONES_NAMES):
             target_name = INFINITY_STONES_NAMES[target_stone_idx]
-            desc = f"Cel: Kamień {target_name} | Forma: {level_name}"
+            desc = f"Cel: Kamień {target_name} | Stan: {level_name}"
         else:
-            desc = f"BÓG | Forma: {level_name}"
-            
+            desc = f"BÓG | Stan: {level_name}"
+
     return filename, desc
 
 # --- FUNKCJA ANIMACJI CYBER-SCANNER (HYBRYDA) ---
@@ -789,6 +797,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

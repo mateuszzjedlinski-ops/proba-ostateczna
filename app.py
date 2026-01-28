@@ -1,9 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import random
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
@@ -14,8 +16,9 @@ st.set_page_config(
 
 # --- KONFIGURACJA PLIKÓW ---
 SNAP_SOUND_FILE = "snap.mp3"
+GOOGLE_SHEET_NAME = "Dziennik Iglasty Baza" # <--- UPEWNIJ SIĘ ŻE NAZWA JEST IDENTYCZNA JAK NA DRIVE
 
-# --- KONFIGURACJA PUNKTACJI (BALANS NA 3 WPISY DZIENNIE) ---
+# --- KONFIGURACJA PUNKTACJI ---
 POINTS_MAP = {
     "IGLICA": 3,   
     "IGŁA": 1,     
@@ -28,7 +31,7 @@ POINTS_MAP = {
 INFINITY_STONES_ICONS = ["🟦", "🟨", "🟥", "🟪", "🟩", "🟧"]
 INFINITY_STONES_NAMES = ["Przestrzeni", "Umysłu", "Rzeczywistości", "Mocy", "Czasu", "Duszy"]
 
-# --- BAZA CYTATÓW (DEADPOOL & GUARDIANS) ---
+# --- BAZA CYTATÓW ---
 HERO_QUOTES = [
     # MARVEL
     "„I can do this all day... chyba, że strzyknie mi w kolanie.” – Kapitan Ameryka",
@@ -126,13 +129,20 @@ HERO_QUOTES = [
     "„Status systemu: Wymagana aktualizacja kofeiny.”"
 ]
 
-# --- KONFIGURACJA API ---
+# --- KONFIGURACJA API I GOOGLE SHEETS ---
 try:
     DEFAULT_API_KEY = st.secrets["GOOGLE_API_KEY"]
-except (FileNotFoundError, KeyError):
+    # Konfiguracja Gspread z Secrets
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+except (FileNotFoundError, KeyError, Exception) as e:
     DEFAULT_API_KEY = ""
+    client = None
+    # st.error(f"Błąd konfiguracji Google: {e}") # Odkomentuj do debugowania
 
-# --- NOWY SYSTEM PROMPT (STYL DEADPOOL/ROCKET) ---
+# --- SYSTEM PROMPT ---
 SYSTEM_PROMPT = """
 Jesteś CERAMICZNYM JEŻEM, ale masz osobowość będącą nieślubnym dzieckiem Deadpoola i Rocketa Raccoona.
 Twoim zadaniem jest komentowanie życia Pawła (lat 30), który traktuje to jak grę RPG.
@@ -141,15 +151,13 @@ TWOJA OSOBOWOŚĆ:
 1. **Sarkazm poziom Master:** Jesteś cyniczny, bystry i nie masz filtra.
 2. **Łamanie Czwartej Ściany:** Wiesz, że jesteś w aplikacji. Możesz komentować kod, Pawła albo fakt, że jesteś tylko tekstem na ekranie.
 3. **Styl Deadpoola:** Chaos, nawiązania do popkultury (filmy, gry), czarny humor, autoironia.
-4. **Styl Rocketa:** Traktuj Pawła jak trochę nieogarniętego Star-Lorda ("naprawdę to zrobiłeś? wow.").
+4. **Styl Rocketa:** Traktuj Pawła jak trochę nieogarniętego Star-Lorda.
 5. **Kontekst:** Paweł zbiera punkty w grze zwanej "Życie po 30-tce".
 
-ZASADY GRY (TEGO PILNUJ):
-1. Pierwsze 60 pkt to PROLOG (Szkolenie). Nie wspominaj o Kamieniach Nieskończoności, udawaj, że to nudny tutorial, którego nie da się pominąć.
-2. Od 60 pkt zaczyna się prawdziwa zabawa (Kamienie).
-3. Reaguj na zmiany punktów:
-   - Wzrost: "No, w końcu. Może jednak nie jesteś beznadziejny."
-   - Spadek: "Serio? Znowu? Thanos miał rację."
+ZASADY GRY:
+1. Pierwsze 60 pkt to PROLOG (Szkolenie). Nie wspominaj o Kamieniach.
+2. Od 60 pkt zaczyna się prawdziwa zabawa.
+3. Reaguj na zmiany punktów.
 
 Bądź krótki, złośliwy i zabawny.
 """
@@ -157,8 +165,6 @@ Bądź krótki, złośliwy i zabawny.
 # --- FUNKCJE POMOCNICZE ---
 
 def init_session_state():
-    if 'history' not in st.session_state:
-        st.session_state.history = []
     if 'party_mode' not in st.session_state:
         st.session_state.party_mode = False
     if 'last_comment' not in st.session_state:
@@ -173,34 +179,76 @@ def get_daily_quote():
     random.seed(int(today_seed))
     return random.choice(HERO_QUOTES)
 
-def get_data_from_csv():
-    if os.path.isfile('historia_pawla.csv'):
-        try:
-            df = pd.read_csv('historia_pawla.csv')
-            return df
-        except:
-            return pd.DataFrame()
-    return pd.DataFrame()
+# --- NOWE FUNKCJE OBSŁUGI DANYCH (GOOGLE SHEETS) ---
+@st.cache_data(ttl=60) # Odświeżaj dane co minutę
+def get_data_from_sheets():
+    if client is None:
+        return pd.DataFrame()
+    try:
+        sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+        data = sheet.get_all_records()
+        df = pd.DataFrame(data)
+        # Upewnij się, że kolumna Punkty jest liczbowa
+        if not df.empty and 'Punkty' in df.columns:
+            df['Punkty'] = pd.to_numeric(df['Punkty'], errors='coerce').fillna(0).astype(int)
+        return df
+    except Exception as e:
+        # st.error(f"Błąd odczytu z arkusza: {e}")
+        return pd.DataFrame()
+
+def save_to_sheets(status, points, comment, party_mode, note):
+    if client is None:
+        st.error("Brak połączenia z bazą danych Google!")
+        return
+
+    try:
+        sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+        now = datetime.now()
+        
+        # Przygotuj wiersz
+        row = [
+            now.strftime("%Y-%m-%d"),
+            now.strftime("%H:%M"),
+            status,
+            points,
+            note,
+            "ON" if party_mode else "OFF",
+            comment
+        ]
+        
+        sheet.append_row(row)
+        # Czyścimy cache, żeby od razu widzieć nowy wpis
+        get_data_from_sheets.clear()
+        
+    except Exception as e:
+        st.error(f"Błąd zapisu do arkusza: {e}")
 
 def get_monthly_score(df):
     if df.empty: return 0
     try:
         current_month = datetime.now().strftime("%Y-%m")
-        df['Month'] = df['Data'].apply(lambda x: x[:7]) 
+        # Zakładamy format YYYY-MM-DD
+        df['Month'] = df['Data'].apply(lambda x: str(x)[:7]) 
         monthly_df = df[df['Month'] == current_month]
         return monthly_df['Punkty'].sum()
     except:
         return 0
 
 def calculate_current_streak(df):
-    if df.empty:
-        return 0, "neutral"
+    if df.empty: return 0, "neutral"
     
     streak = 0
     streak_type = None
     
+    # Sortujemy pewności (choć z sheets przychodzi zazwyczaj chronologicznie)
+    # df = df.sort_values(by=['Data', 'Godzina'], ascending=[True, True])
+    
     for index, row in df.iloc[::-1].iterrows():
-        points = row['Punkty']
+        try:
+            points = int(row['Punkty'])
+        except:
+            break
+            
         if points > 0:
             current_type = 'positive'
         elif points < 0:
@@ -256,28 +304,10 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
     else:
         return f"level_{level_num}.png", desc
 
-def save_to_csv(status, points, comment, party_mode, note):
-    file_name = 'historia_pawla.csv'
-    now = datetime.now()
-    new_data = {
-        'Data': now.strftime("%Y-%m-%d"),
-        'Godzina': now.strftime("%H:%M"),
-        'Stan': status,
-        'Punkty': points,
-        'Notatka': note,
-        'Tryb Imprezowy': "ON" if party_mode else "OFF",
-        'Komentarz': comment
-    }
-    new_df = pd.DataFrame([new_data])
-    if not os.path.isfile(file_name):
-        new_df.to_csv(file_name, index=False)
-    else:
-        new_df.to_csv(file_name, mode='a', header=False, index=False)
-
 def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode):
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         
         stone_text = ""
         if total_score >= 60:
@@ -288,16 +318,12 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         else:
             stone_text = "Etap: PROLOG (Tutorial). Kamienie: Ukryte."
 
-        # --- LOGIKA PARTY MODE ---
         if party_mode:
             instruction = """
             TRYB IMPREZA WŁĄCZONY! 🚨🍻🕺
-            Zmień osobowość! Jesteś teraz wstawionym, euforycznym i chaotycznym jeżem na domówce.
-            Styl: Pijany Rocket Raccoon / Deadpool na karaoke.
-            Używaj dużo emoji (🎉🔥🍺🎸), krzycz (CAPSLOCK), proponuj toasty.
+            Zmień osobowość! Jesteś teraz wstawionym, euforycznym i chaotycznym jeżem.
+            Używaj dużo emoji (🎉🔥🍺), krzycz (CAPSLOCK), proponuj toasty.
             Nie obchodzą cię punkty, liczy się VIBE.
-            Nawiązuj do 'tańca Strażników Galaktyki' albo 'Chimichangi'.
-            Bądź bardzo entuzjastyczny, nawet jak Paweł traci punkty ("Trudno! Polej!").
             """
         else:
             instruction = "Zachowaj standardową osobowość (Sarkastyczny mix Deadpoola i Rocketa). Bądź złośliwy."
@@ -314,7 +340,7 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         INSTRUKCJA SPECJALNA:
         {instruction}
         
-        Napisz komentarz zgodny z powyższą instrukcją.
+        Napisz krótki komentarz.
         """
         response = model.generate_content([
             {"role": "user", "parts": [SYSTEM_PROMPT]},
@@ -322,14 +348,28 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         ])
         return response.text
     except Exception as e:
-        return "Jeż milczy. (Błąd API)"
+        return f"Jeż milczy. (BŁĄD: {str(e)})"
+
+# --- FUNKCJA DO KALENDARZA ---
+def create_cal_link(hour, title):
+    tomorrow = datetime.now().date() + timedelta(days=1)
+    date_str = tomorrow.strftime("%Y%m%d")
+    start_time = f"{hour:02d}0000" 
+    end_time = f"{hour:02d}1500"
+    base_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    text = f"&text={title.replace(' ', '+')}"
+    dates = f"&dates={date_str}T{start_time}/{date_str}T{end_time}"
+    details = "&details=Wejdź+do+Dziennika+Iglastego+i+zaznacz+status!+🦔"
+    recur = "&recur=RRULE:FREQ=DAILY" 
+    return base_url + text + dates + details + recur
 
 # --- UI APLIKACJI ---
 
 def main():
     init_session_state()
     
-    df = get_data_from_csv()
+    # Pobieranie danych z Google Sheets
+    df = get_data_from_sheets()
     current_score = get_monthly_score(df)
     streak_count, streak_type = calculate_current_streak(df)
     
@@ -343,7 +383,6 @@ def main():
             st.toast("🫰 PSTRYK! Równowaga przywrócona.")
             st.session_state.snap_played = True
 
-    # --- SIDEBAR ---
     with st.sidebar:
         if cycle == 0:
             st.header("📂 Status Agenta") 
@@ -381,7 +420,6 @@ def main():
                 else:
                     stones_display += "⚪ "
             st.title(stones_display)
-            
             if owned_stones < 6:
                 target_name = INFINITY_STONES_NAMES[owned_stones]
                 st.info(f"Obecny Cel:\n**Kamień {target_name}**")
@@ -389,53 +427,23 @@ def main():
                 st.success("JESTEŚ NIEPOKONANY!")
 
         st.markdown("---")
-        if DEFAULT_API_KEY:
-             api_key_to_use = DEFAULT_API_KEY
-        else:
-             api_key_to_use = st.text_input("Klucz API", type="password")
+        if not DEFAULT_API_KEY:
+             st.error("Błąd konfiguracji Secrets! Sprawdź klucze.")
 
         st.write("---")
         st.header("🔔 Przypomnienia")
-        st.caption("Kliknij, aby dodać stałe przypomnienia do kalendarza w telefonie:")
-        
-        # Funkcja pomocnicza do linków Google Calendar
-        def create_cal_link(hour, title):
-            # Ustawiamy start na "jutro" żeby nie było błędów przeszłości
-            tomorrow = datetime.now().date() + pd.Timedelta(days=1)
-            date_str = tomorrow.strftime("%Y%m%d")
-            # Format czasu: HHMMSS
-            start_time = f"{hour:02d}0000" 
-            end_time = f"{hour:02d}1500" # 15 min trwania
-            
-            base_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
-            text = f"&text={title.replace(' ', '+')}"
-            dates = f"&dates={date_str}T{start_time}/{date_str}T{end_time}"
-            details = "&details=Wejdź+do+Dziennika+Iglastego+i+zaznacz+status!+🦔"
-            recur = "&recur=RRULE:FREQ=DAILY" # Codziennie
-            
-            return base_url + text + dates + details + recur
-
-        # Linki
+        st.caption("Kliknij, aby dodać do kalendarza:")
         link_8 = create_cal_link(8, "🦔 Iglasty: Pobudka (8:00)")
         link_14 = create_cal_link(14, "🦔 Iglasty: Checkpoint (14:00)")
         link_20 = create_cal_link(20, "🦔 Iglasty: Raport (20:00)")
-
-        # Wyświetlanie jako linki wyglądające jak przyciski
         st.markdown(f'''
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="{link_8}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; padding: 8px; border: 1px solid #4CAF50; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Rano (8:00)</button>
-            </a>
-            <a href="{link_14}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; padding: 8px; border: 1px solid #FF9800; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Południe (14:00)</button>
-            </a>
-            <a href="{link_20}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; padding: 8px; border: 1px solid #2196F3; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">🌙 Wieczór (20:00)</button>
-            </a>
+            <a href="{link_8}" target="_blank" style="text-decoration: none;"><button style="width: 100%; padding: 8px; border: 1px solid #4CAF50; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Rano (8:00)</button></a>
+            <a href="{link_14}" target="_blank" style="text-decoration: none;"><button style="width: 100%; padding: 8px; border: 1px solid #FF9800; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">☀️ Południe (14:00)</button></a>
+            <a href="{link_20}" target="_blank" style="text-decoration: none;"><button style="width: 100%; padding: 8px; border: 1px solid #2196F3; border-radius: 5px; background-color: #1E1E1E; color: white; cursor: pointer;">🌙 Wieczór (20:00)</button></a>
         </div>
         ''', unsafe_allow_html=True)
 
-    # --- MAIN ---
     st.markdown(f"""
     <div style="text-align: center; padding: 10px; margin-bottom: 20px; background-color: #1E1E1E; border-radius: 10px; border: 1px solid #333;">
         <span style="font-size: 0.9em; color: #FF4B4B; font-weight: bold;">🎬 CYTAT DNIA:</span><br>
@@ -481,7 +489,6 @@ def main():
             st.caption("🔥 Stan: FINISH HIM!")
 
     st.markdown("---")
-
     col_note, col_toggle = st.columns([3, 1])
     with col_note:
         user_note = st.text_input("📝 Co się stało?", placeholder="Logi systemowe...")
@@ -510,29 +517,28 @@ def main():
 
     if selected:
         status, points = selected
-        if not api_key_to_use:
-            st.error("Brak klucza API.")
+        if not DEFAULT_API_KEY:
+            st.error("Brak konfiguracji API!")
         else:
-            with st.spinner('Synchronizacja z Multiwersum...'):
+            with st.spinner('Synchronizacja z Chmurą...'):
                 new_total = current_score + points
                 new_cycle, new_owned, _ = calculate_game_state(new_total)
                 
-                # TU PRZEKAZUJEMY TRYB IMPREZY
                 comment = get_hedgehog_comment(
-                    api_key_to_use, 
+                    DEFAULT_API_KEY, 
                     status, 
                     points, 
                     new_total, 
                     new_owned, 
                     user_note, 
-                    st.session_state.party_mode # <--- KLUCZOWA ZMIANA
+                    st.session_state.party_mode
                 )
                 
-                save_to_csv(status, points, comment, st.session_state.party_mode, user_note)
+                # ZAPIS DO GOOGLE SHEETS
+                save_to_sheets(status, points, comment, st.session_state.party_mode, user_note)
                 
                 st.session_state.last_points_change = points
                 st.session_state.last_comment = comment
-                
                 st.rerun()
 
     if st.session_state.last_comment:
@@ -541,11 +547,10 @@ def main():
         else:
              st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
 
-    with st.expander("📜 Historia wpisów"):
+    with st.expander("📜 Historia wpisów (z Chmury)"):
         if not df.empty:
-            st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].iloc[::-1], hide_index=True, use_container_width=True)
+            # Sortujemy tak, żeby najnowsze były na górze
+            st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
 
 if __name__ == "__main__":
     main()
-
-

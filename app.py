@@ -578,6 +578,7 @@ def main():
         (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
     ]
 
+# 1. Rysowanie przycisków (To jest pętla)
     for label, status, points, col in buttons:
         # Wyświetlamy punkty na przycisku (np. "+5" lub "-12")
         if col.button(f"{label}\n({points:+})", use_container_width=True):
@@ -589,7 +590,7 @@ def main():
         # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
         code_word = user_note.strip().lower()
 
-        # 1. THE THANOS SNAP (Fake Delete)
+        # A. THE THANOS SNAP (Fake Delete)
         if code_word == "thanos":
             with st.spinner("⚠️ WYKRYTO ZAGROŻENIE..."):
                 time.sleep(1)
@@ -608,7 +609,7 @@ def main():
             time.sleep(1)
             my_bar.empty() # Czyści pasek
 
-        # 2. SŁABE HASŁA (Wyśmiewanie)
+        # B. SŁABE HASŁA (Wyśmiewanie)
         elif code_word in ["admin", "hasło", "1234", "password"]:
             st.toast("🔒 Serio? Takie hasło?")
             time.sleep(1.5)
@@ -616,7 +617,7 @@ def main():
             time.sleep(1.5)
             st.toast("🦔 Żenujące. Odejmuję 0 punktów tylko z litości.")
 
-        # 3. SELF-DESTRUCT (Deadpool style)
+        # C. SELF-DESTRUCT (Deadpool style)
         elif code_word == "autodestrukcja":
             st.warning("💣 Autodestrukcja za 3...")
             time.sleep(1)
@@ -628,11 +629,11 @@ def main():
         
         # --- KONIEC EASTER EGGS ---
 
-        if not DEFAULT_API_KEY:
-             # ... (reszta Twojego kodu leci dalej)
+        # 3. Logika zapisu (Tutaj usuwamy zduplikowany fragment, który miałeś)
         if not DEFAULT_API_KEY:
             st.error("Brak konfiguracji API!")
         else:
+            # Dalej jest Twój kod z 'with st.spinner...' - upewnij się, że jest wcięty pod tym 'else:'
             with st.spinner('Synchronizacja z Chmurą...'):
                 new_total = current_score + points
                 new_cycle, new_owned, _ = calculate_game_state(new_total)
@@ -667,6 +668,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

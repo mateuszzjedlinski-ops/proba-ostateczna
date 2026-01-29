@@ -992,6 +992,64 @@ def main():
     
     if selected:
         status, points = selected
+
+        # ============================================================
+        # 👮 ANTI-CWANIAK SYSTEM: BLOKADA CIĄGÓW IMPREZOWYCH (PN-PT) 👮
+        # ============================================================
+        penalty_applied = False # Flaga, czy wlepiono mandat
+        
+        # Sprawdzamy tylko, jeśli włączony jest TRYB IMPREZA
+        if st.session_state.party_mode:
+            today = datetime.now()
+            
+            # Sprawdzamy czy to dzień roboczy (0=Poniedziałek, 4=Piątek)
+            # Weekendy (5, 6) są święte - można imprezować.
+            if today.weekday() < 5: 
+                yesterday = today - timedelta(days=1)
+                yesterday_str = yesterday.strftime("%Y-%m-%d")
+                today_str = today.strftime("%Y-%m-%d")
+                
+                # 1. Czy wczoraj była impreza? (Szukamy w historii)
+                yesterday_party = False
+                if not df.empty and 'Tryb' in df.columns:
+                    # Sprawdzamy czy jest jakikolwiek wpis z wczoraj z Trybem "ON"
+                    yesterday_party = not df[(df['Data'] == yesterday_str) & (df['Tryb'] == "ON")].empty
+                
+                if yesterday_party:
+                    # OHO! Mamy ciąg w tygodniu (Wczoraj + Dzisiaj)
+                    
+                    # 2. Sprawdzamy ile razy DZISIAJ już imprezował (zanim kliknął teraz)
+                    today_party_count = 0
+                    if not df.empty and 'Tryb' in df.columns:
+                         today_party_count = len(df[(df['Data'] == today_str) & (df['Tryb'] == "ON")])
+                    
+                    if today_party_count == 0:
+                        # SCENARIUSZ A: PIERWSZE OSTRZEŻENIE
+                        st.toast("🤨 Halo? Wczoraj też była impreza!", icon="👮")
+                        time.sleep(1.5)
+                        st.warning("⚠️ SYSTEM BEZPIECZEŃSTWA: Wykryto ciąg imprezowy w tygodniu roboczym. To jest OSTRZEŻENIE. Kolejna próba dzisiaj zakończy się MANDATEM (-100 kredytów).")
+                        # Dodajemy info do notatki, żeby został ślad w historii
+                        user_note += " [OSTRZEŻENIE: CIĄG IMPREZOWY]"
+                        
+                    else:
+                        # SCENARIUSZ B: RECYDYWA (MANDAT)
+                        penalty_applied = True
+                        
+                        # 1. Zabieramy 100 kredytów (Symulujemy zakup w sklepie o nazwie MANDAT)
+                        # Nadpisujemy notatkę tak, żeby funkcja calculate_currency to wyłapała
+                        user_note = "SHOP_BUY | MANDAT ZA IMPREZOWANIE | -100"
+                        
+                        # 2. Zerujemy punkty EXP za tę akcję (lub dajemy minusowe)
+                        points = -10 # Dodatkowa kara w EXP
+                        status = "MANDAT 👮"
+                        
+                        # 3. Efekty wizualne i dźwiękowe
+                        if os.path.exists("error_sound.mp3"): # Jeśli masz jakiś dźwięk błędu/syreny
+                            st.audio("error_sound.mp3", autoplay=True)
+                        
+                        st.error("🚨 OSTRZEGAŁEM! ZOSTAŁEŚ UKARANY.")
+                        st.toast("💸 -100 Kredytów. Nie cwaniakuj.", icon="💸")
+                        time.sleep(2)
         
         # --- 🛡️ ANTI-CHEAT SYSTEM (BLOKADA 3 KLIKNIĘĆ) 🛡️ ---
         # 1. Pobieramy dzisiejszą datę jako string (format taki jak w Google Sheets, np. YYYY-MM-DD)
@@ -1275,6 +1333,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

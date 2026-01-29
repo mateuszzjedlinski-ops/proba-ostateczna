@@ -1247,7 +1247,8 @@ def main():
             st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
     
     if __name__ == "__main__":
-    main()
+        main()
+
 
 
 

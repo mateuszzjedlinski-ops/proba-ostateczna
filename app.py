@@ -304,47 +304,70 @@ def calculate_game_state(score):
 
 def calculate_currency(df, current_score, owned_stones):
     """
-    Ekonomia Osiągnięć:
-    - Kliki: +5 (Standard) / +10 (Impreza) - liczone od początku (backpay).
-    - START (Prolog ukończony): +300 Kredytów (Grant na start sklepu).
-    - Kamienie: +200 kredytów za kamienie 1-5.
+    Ekonomia Osiągnięć (Poprawiona - Hybryda):
+    1. Bonusy stałe (Start + Kamienie) - naliczane NAJPIERW.
+    2. Historia (Kliki + Zakupy) - naliczane z arkusza.
+    3. Bonusy za staż imprezowy.
     """
-    if df.empty: return 0
     balance = 0
+
+    # --- 1. BONUSY STAŁE (Działają nawet przy pustym arkuszu!) ---
     
-    # 1. Zarabianie na klikaniu (Baza)
+    # A. Grant na start Sklepu (Poziom 60+)
+    if current_score >= 60:
+        balance += 300 
+
+    # B. Bonus za Kamienie (max 5 płatnych)
+    stones_rewarded = min(owned_stones, 5)
+    balance += (stones_rewarded * 200)
+
+    # --- 2. JEŚLI ARKUSZ PUSTY -> Zwracamy to co mamy (300 + kamienie) ---
+    if df.empty:
+        return balance
+
+    # --- 3. HISTORIA TRANSAKCJI (Jeśli są wpisy) ---
     for index, row in df.iterrows():
-        points = row.get('Punkty', 0)
+        try:
+            points = int(row.get('Punkty', 0))
+        except:
+            points = 0
+            
         note = str(row.get('Notatka', '')).strip()
-        
-        # Odejmujemy wydatki na zakupy
+
+        # A. Wydatki (Zakupy w sklepie i Mandaty)
         if "SHOP_BUY" in note:
             try:
                 parts = note.split('|')
-                balance += int(parts[2]) # Koszt jest zapisany jako ujemny
-            except: pass
+                # Ostatni element to zazwyczaj kwota (np. -100)
+                cost = int(parts[-1]) 
+                balance += cost # Dodajemy ujemną liczbę
+            except:
+                pass 
+                
+        # B. Zarobki za kliki (Tylko jeśli to NIE był zakup)
         else:
-            # Dodajemy za kliki
-            if points >= 5: balance += 10    # Impreza
-            elif points > 0: balance += 5    # Standard
-            elif points < 0: balance += 1    # Pocieszenie
-            
-    # 2. BONUSY
-    if current_score >= 60: balance += 300 # Grant Startowy
-    
-    # Kamienie (max 5 płatnych)
-    stones_rewarded = min(owned_stones, 5)
-    balance += (stones_rewarded * 200)
-    
-    # Imprezy (staż)
+            # Twoja logika stawek:
+            if points >= 5: 
+                balance += 10  # Impreza
+            elif points > 0: 
+                balance += 5   # Standard
+            elif points < 0: 
+                balance += 1   # Pocieszenie
+
+    # --- 4. BONUSY ZA IMPREZY (Twoja sekcja z wierszy 339-347) ---
     try:
-        party_count = len(df[df['Tryb'] == True])
-    except KeyError: party_count = 0
-    
+        # Liczymy ile razy był tryb impreza (zakładając True/False lub "ON")
+        # Musimy obsłużyć oba przypadki zapisu w bazie
+        party_count = len(df[df['Tryb'].astype(str).isin(['True', 'ON', '1'])])
+    except:
+        party_count = 0
+
     thresholds = [3, 6, 9, 12, 15]
     for t in thresholds:
-        if party_count >= t: balance += 150
+        if party_count >= t:
+            balance += 150
 
+    # Zabezpieczenie przed ujemnym saldem
     return max(0, balance)
 
 def calculate_hp(df):
@@ -630,9 +653,41 @@ def main():
     df = get_data_from_sheets()
     current_score = get_total_score(df)
     current_score = 60
-    current_hp = calculate_hp(df)
     streak_count, streak_type = calculate_current_streak(df)
     current_hp = calculate_hp(df)
+
+    # --- SIDEBAR (Pasek Boczny z Jeżem i HP) ---
+    with st.sidebar:
+        # 1. Avatar i Ranga
+        if current_score < 60:
+            st.image("https://cdn-icons-png.flaticon.com/512/3468/3468306.png", width=100)
+            st.title("Stażysta")
+        else:
+            st.image("https://cdn-icons-png.flaticon.com/512/9440/9440535.png", width=100)
+            st.title("Agent T.A.R.C.Z.Y.")
+            
+        st.markdown("---")
+        
+        # 2. Licznik Punktów
+        st.metric(label="Moc całkowita (EXP)", value=current_score)
+        
+        # 3. Pasek Zdrowia (HP) - Widoczny tylko dla Agenta (60+ pkt)
+        if current_score >= 60:
+            st.markdown("### ❤️ Stan Zdrowia")
+            
+            # Kolor paska
+            if current_hp > 50: bar_color = "green"
+            elif current_hp > 20: bar_color = "orange"
+            else: bar_color = "red"
+                
+            st.progress(current_hp / 100, text=f"{current_hp}/100 HP")
+            
+            if current_hp <= 0:
+                st.error("STAN KRYTYCZNY!")
+        else:
+            st.info("❤️ Zdrowie: Chronione (Poligon)")
+            
+        st.markdown("---")
     
     cycle, owned_stones, cycle_progress = calculate_game_state(current_score)
     level_img, level_desc = get_smart_image_filename(cycle, owned_stones, cycle_progress)
@@ -1473,6 +1528,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

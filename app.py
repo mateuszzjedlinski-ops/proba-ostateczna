@@ -622,6 +622,7 @@ def main():
     current_score = get_total_score(df)
     current_hp = calculate_hp(df)
     streak_count, streak_type = calculate_current_streak(df)
+    current_hp = calculate_hp(df)
     
     cycle, owned_stones, cycle_progress = calculate_game_state(current_score)
     level_img, level_desc = get_smart_image_filename(cycle, owned_stones, cycle_progress)
@@ -1426,6 +1427,7 @@ with st.expander("📜 Historia wpisów (z Chmury)"):
 
 if __name__ == "__main__":
     main()
+
 
 
 

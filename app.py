@@ -656,8 +656,9 @@ def main():
     
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
+    real_score = get_total_score(df) # Prawdziwy wynik z bazy
+    current_score = real_score + 58  # Symulacja: Baza + "Bonus Testowy"
     current_score = get_total_score(df)
-    current_score = 58
     streak_count, streak_type = calculate_current_streak(df)
     current_hp = calculate_hp(df)
 
@@ -1533,6 +1534,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

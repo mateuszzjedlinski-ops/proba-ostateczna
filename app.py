@@ -314,7 +314,7 @@ def calculate_currency(df, current_score, owned_stones):
     # --- 1. BONUSY STAŁE (Działają nawet przy pustym arkuszu!) ---
     
     # A. Grant na start Sklepu (Poziom 60+)
-    if current_score >= 60:
+    if current_score >= 58:
         balance += 300 
 
     # B. Bonus za Kamienie (max 5 płatnych)
@@ -1528,6 +1528,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

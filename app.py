@@ -1192,6 +1192,22 @@ def main():
     
     if selected:
         status, points = selected
+
+        if points > 0: # Działa tylko przy zdobywaniu punktów
+            current_cycle_num = current_score // 60
+            next_threshold = (current_cycle_num + 1) * 60
+            
+            # Sprawdzamy, czy ten ruch przebiłby sufit
+            if current_score < next_threshold and (current_score + points) > next_threshold:
+                # Obliczamy ile brakuje do równego progu
+                diff = next_threshold - current_score
+                
+                # Nadpisujemy punkty
+                points = diff 
+                
+                # Informacja dla Pawła
+                st.toast(f"🛑 DOTARŁEŚ DO BRAMY SKARBCA! (Zatrzymano na {next_threshold} pkt)", icon="🛡️")
+                time.sleep(1)
     
         # ============================================================
         # 👮 ANTI-CWANIAK SYSTEM: BLOKADA CIĄGÓW IMPREZOWYCH (PN-PT) 👮
@@ -1533,6 +1549,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

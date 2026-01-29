@@ -862,6 +862,13 @@ def main():
             explore_percent = current_score / 60.0
             explore_percent = max(0.0, min(1.0, explore_percent))
             st.progress(explore_percent, text=f"Eksploracja Świata: {int(explore_percent * 100)}%")
+            # --- 📜 CYTAT DNIA (DODANY NA DOLE ZAKŁADKI) ---
+        st.markdown("---")
+        st.markdown(f"""
+        <div style='text-align: center; color: #808080; font-style: italic; font-size: 0.9em; padding: 10px; background-color: #262730; border-radius: 5px;'>
+            ❝ {daily_quote} ❞
+        </div>
+        """, unsafe_allow_html=True)
     
 # --- ZAKŁADKA 2: STATYSTYKI ---
     with tab2:
@@ -1025,63 +1032,83 @@ def main():
             time.sleep(2.5)
             st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
         # ----------------------------------------------------
-    # --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA PRECYZYJNA) 🎵 ---
-        delay_time = 2.5  # Domyślny, krótki czas (dla komentarzy Rocketa)
-    
+# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA STREAK 3.0) 🎵 ---
+        delay_time = 2.5  # Domyślny, krótki czas (tylko tekst)
+
         # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
         if points > 0:
             
             if st.session_state.party_mode:
-                # --- SCENARIUSZ: IGLICA (IMPREZA) ---
-                # WYMAGANIE: Zgryźliwy ale z podziwem komentarz Rocketa (bez efektów)
+                # --- SCENARIUSZ: IMPREZA (Zawsze tylko tekst) ---
                 rocket_respect = [
                     "🦝 ROCKET: Ty chory draniu... udało ci się.",
-                    "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu, a jednak.",
+                    "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu.",
                     "🦝 ROCKET: Jesteś świrem. Szanuję to.",
-                    "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie.",
-                    "🦝 ROCKET: Co za fart. Następnym razem wybuchniesz."
+                    "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie."
                 ]
                 st.success(random.choice(rocket_respect))
-                # Zostawiamy krótki czas (2.5s) i brak muzyki/gifa
             
             else:
-                # --- SCENARIUSZ: IGLICA (STANDARD) ---
-                # WYMAGANIE: Losowanie Starlord/Deadpool (Muzyka + GIF + 10s)
-                iglica_options = [
-                    ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
-                    ("deadpool_dance.gif", "deadpool_music.mp3", "💃 BYE BYE! Deadpool przejmuje show!")
-                ]
+                # --- SCENARIUSZ: STANDARD (Iglica vs Igła) ---
                 
-                chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
+                # Sprawdzamy, czy to IGLICA i czy jest STREAK (min. 2 wcześniejsze + ten obecny = 3)
+                is_streak_event = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
                 
-                # Odpalamy Show
-                if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
-                    st.audio(chosen_audio, autoplay=True)
-                    st.markdown("---")
-                    st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
-                    delay_time = 11.0 # Wydłużamy czas na show
-    
+                if is_streak_event:
+                    # NAGRODA ZA STREAK 3+ (Muzyka + Show)
+                    iglica_options = [
+                        ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Seria utrzymana! Star-Lord wymiata!"),
+                        ("deadpool_dance.gif", "deadpool_music.mp3", "💃 COMBO BREAKER! Deadpool przejmuje show!")
+                    ]
+                    
+                    chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
+                    
+                    if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
+                        st.toast(f"🔥 TO JUŻ {streak_count + 1} DZIEŃ SERII! IMPREZA!", icon="🎉")
+                        st.audio(chosen_audio, autoplay=True)
+                        st.markdown("---")
+                        st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
+                        delay_time = 11.0 # Wydłużamy czas na show
+                    else:
+                        st.success(f"🔥 NIESAMOWITA SERIA! To już {streak_count + 1} raz z rzędu!")
+                
+                else:
+                    # ZWYKŁE KLIKNIĘCIE (Bez muzyki, krótki czas)
+                    if status == "IGLICA":
+                        st.success("✅ Solidna robota. Buduj serię dalej.")
+                    else:
+                        st.success("💎 Mały krok dla jeża, wielki dla ludzkości.")
+
         # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
         elif points < 0:
             
             if st.session_state.party_mode:
-                # --- SCENARIUSZ: IGLISKO (IMPREZA) ---
-                # WYMAGANIE: Thor (Muzyka + GIF + 10s)
-                if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
-                    st.audio("thor_drunk.mp3", autoplay=True)
-                    st.markdown("---")
-                    st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien...", use_container_width=True)
-                    delay_time = 11.0 # Wydłużamy czas na show dla Thora
+                # --- SCENARIUSZ: IMPREZA (Iglisko) ---
+                
+                # Sprawdzamy czy to IGLISKO i czy to już 3. wpadka z rzędu
+                is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
+                
+                if is_fail_streak:
+                    # KARA ZA SERIĘ WPADEK (Thor)
+                    if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
+                        st.toast("🍺 Ouch... To już seria porażek.", icon="🥴")
+                        st.audio("thor_drunk.mp3", autoplay=True)
+                        st.markdown("---")
+                        st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien... chyba.", use_container_width=True)
+                        delay_time = 11.0
+                    else:
+                        st.error("🍺 Thor by cię pocieszył, ale śpi. Ogarnij się.")
+                else:
+                    # Zwykła wpadka (bez muzyki)
+                    st.error("💀 Ale urwał! Uważaj na wątrobę.")
             
             else:
-                # --- SCENARIUSZ: IGLISKO (STANDARD) ---
-                # WYMAGANIE: Nieznośny komentarz Rocketa (bez efektów)
+                # --- SCENARIUSZ: STANDARD (Rocket cisnie) ---
                 rocket_insults = [
                     "🦝 ROCKET: Gratulacje, geniuszu. Obniżyłeś IQ całego statku.",
                     "🦝 ROCKET: Groot by to lepiej wybrał. A on jest drzewem.",
                     "🦝 ROCKET: Nie dotykaj niczego więcej, błagam.",
-                    "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał.",
-                    "🦝 ROCKET: Potrzebuję twojej protezy... za karę."
+                    "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał."
                 ]
                 st.error(random.choice(rocket_insults))
     
@@ -1248,6 +1275,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

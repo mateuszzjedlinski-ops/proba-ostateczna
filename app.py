@@ -629,6 +629,7 @@ def main():
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
     current_score = get_total_score(df)
+    current_score = 60
     current_hp = calculate_hp(df)
     streak_count, streak_type = calculate_current_streak(df)
     current_hp = calculate_hp(df)
@@ -1472,6 +1473,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

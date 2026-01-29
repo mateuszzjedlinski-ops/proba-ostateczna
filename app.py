@@ -529,11 +529,6 @@ def play_level_up_animation(new_cycle):
     time.sleep(1)
     placeholder.empty()
 
-    if os.path.exists(filename):
-        return filename, desc
-    else:
-        return f"level_{level_num}.png", desc
-
 def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode, df, streak_count, streak_type):
     try:
         genai.configure(api_key=api_key)
@@ -1538,6 +1533,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -864,7 +864,7 @@ def main():
         tab1, tab2, tab3, tab4 = st.tabs(["📋 Misja Dnia", "📊 Statystyki", "🛒 Sklep", "⚙️ Ustawienia"])
     else:
         # Wersja demo (2 zakładki - Sklep jest niewidzialny)
-        tab1, tab2 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki"])
+        tab1, tab2, tab4 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki", "⚙️ Ustawienia"])
         tab3 = None # Zmienna pusta, żeby kod się nie wywalił
     
     # --- ZAKŁADKA 1: MISJA DNIA ---
@@ -1460,6 +1460,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

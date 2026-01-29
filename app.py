@@ -451,32 +451,34 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
 
     return filename, desc
 
-# --- FUNKCJA ANIMACJI CYBER-SCANNER (HYBRYDA) ---
+# --- FUNKCJA ANIMACJI CYBER-SCANNER (HYBRYDA NAPRAWIONA) ---
 def play_level_up_animation(new_cycle):
-    placeholder = st.empty()
+    # 1. BEZPIECZNIK: Definiujemy zmienną na start, żeby uniknąć NameError
+    filename = None 
     
-    # SCENARIUSZ DLA OTWARCIA SKARBCA (60 PKT)
+    placeholder = st.empty()
+
+    # --- SCENARIUSZ A: OTWARCIE SKARBCA (Level 1 - Animacja Kodowa) ---
     if new_cycle == 1:
         with placeholder.container():
             st.markdown("---")
-            
-            # 1. HACKOWANIE (Teksty z pierwszej wersji)
+
+            # 1. HACKOWANIE
             with st.spinner("⚠️ WYKRYTO FLUKTUACJE ENERGII..."):
                 time.sleep(1.5)
-            
-            progress_text = "ŁAMANIE ZABEZPIECZEŃ SKARBCA..."
+
+            progress_text = "🔐 ŁAMANIE ZABEZPIECZEŃ SKARBCA..."
             my_bar = st.progress(0, text=progress_text)
-            
+
             # Symulacja ładowania
             for percent_complete in range(100):
-                time.sleep(0.01) # Szybkie ładowanie
+                time.sleep(0.01) 
                 my_bar.progress(percent_complete + 1, text=f"DEKODOWANIE: {percent_complete}%")
-            
+
             time.sleep(0.5)
-            my_bar.empty() # Czyścimy pasek, żeby zrobić miejsce na show
-            
-            # 2. EFEKT "ROZRZUCANIA KAMIENI" (Błyskotki z drugiej wersji)
-            # Definiujemy kamienie (Ikona + Kolor Hex)
+            my_bar.empty() 
+
+            # 2. EFEKT "ROZRZUCANIA KAMIENI"
             stones_fx = [
                 ("🟣", "#800080"), # MOC
                 ("🔵", "#0000FF"), # PRZESTRZEŃ
@@ -485,38 +487,42 @@ def play_level_up_animation(new_cycle):
                 ("🟢", "#008000"), # CZAS
                 ("🟡", "#FFD700")  # UMYSŁ
             ]
-            
-            st.subheader("📡 SKANOWANIE MULTIWERSUM...")
-            
-            # Tworzymy 5 kolumn, żeby "rozrzucić" błyski po szerokości ekranu
+
+            st.subheader("🔭 SKANOWANIE MULTIWERSUM...")
+
             cols = st.columns(5)
-            
             # Pętla generująca losowe błyski
-            for _ in range(25): # 25 błysków
+            for _ in range(25): 
                 col = random.choice(cols)
                 stone_icon, stone_color = random.choice(stones_fx)
-                
                 with col:
-                    # Wyświetlamy dużą kolorową kropkę/kamień na ułamek sekundy
                     st.markdown(f"<h1 style='text-align: center; color: {stone_color};'>{stone_icon}</h1>", unsafe_allow_html=True)
-                
-                time.sleep(0.15) # Efekt stroboskopu
-            
-            # 3. FINAŁ (Połączenie obu wersji)
+                time.sleep(0.15) 
+
+            # 3. FINAŁ
             time.sleep(0.5)
             st.success("✅ DOSTĘP PRZYZNANY. SKARBIEC OTWARTY.")
             
-            # Terminalowy komunikat końcowy
+            # Terminalowy komunikat
             st.code("SYSTEM: ONLINE\nCEL: ZEBRAĆ JE WSZYSTKIE\nSTATUS: BOHATER", language="bash")
             time.sleep(2.5)
-            
-    # SCENARIUSZ DLA DALSZYCH CYKLI
-    elif new_cycle > 1:
-        with placeholder.container():
-            st.title(f"🔁 NOWA GRYWALNOŚĆ: CYKL {new_cycle}!")
-            st.toast("🌀 Czas cofnął się ponownie...")
-            time.sleep(2)
 
+    # --- SCENARIUSZ B: WYŻSZE POZIOMY (Opcjonalne Wideo) ---
+    elif new_cycle == 2:
+        filename = "veteran_levelup.mp4"
+    elif new_cycle == 3:
+        filename = "hero_levelup.mp4"
+
+    # 4. ODTWARZANIE WIDEO (Tylko jeśli zdefiniowano filename)
+    # To jest ten fragment, który wcześniej wywoływał błąd
+    if filename is not None and os.path.exists(filename):
+        with placeholder.container():
+            st.balloons()
+            st.video(filename, autoplay=True)
+            time.sleep(8)
+    
+    # Czyszczenie po animacji
+    time.sleep(1)
     placeholder.empty()
 
     if os.path.exists(filename):
@@ -1528,6 +1534,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -18,7 +18,7 @@ SHOP_INVENTORY = {
         {"name": "🛡️ Przepustka S.H.I.E.L.D.", "desc": "Dokument od Nicka Fury'ego. Gwarantuje nietykalność i święty spokój przez ustalony czas.", "cost": 960, "icon": "🏖️", "hero": "Nick Fury", "reaction": "👁️ NICK FURY: Dobra robota, żołnierzu. Znikaj mi z oczu. Masz wolne."},
         {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 1200, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ],
     # 🛒 ROTACJA 2: AVENGERS ASSEMBLE (Kwiecień-Maj / Październik-Listopad)
     1: [
@@ -28,7 +28,7 @@ SHOP_INVENTORY = {
         {"name": "🇺🇸 Tarcza Kapitana", "desc": "Użyj, aby zrobić 'UNIK' od jednego nudnego spotkania lub wyjścia.", "cost": 720, "icon": "🛡️", "hero": "Steve Rogers", "reaction": "🫡 CAPTAIN AMERICA: Odpocznij, żołnierzu. Zasłużyłeś na przepustkę."},
         {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 880, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ],
     # 🛒 ROTACJA 3: MAGIA I KOSMOS (Czerwiec-Lipiec / Grudzień-Styczeń)
     2: [
@@ -38,7 +38,7 @@ SHOP_INVENTORY = {
         {"name": "😼 Pazury Czarnej Pantery", "desc": "Królewski luksus. Wymień na: 15-minutowy masaż karku/stóp.", "cost": 800, "icon": "🐾", "hero": "Black Panther", "reaction": "👑 T'CHALLA: Nie zamarzam. I Ty też nie będziesz. Przyjmij to jako dar od Wakandy."},
         {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 1120, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ]
 }
 
@@ -349,36 +349,45 @@ def calculate_currency(df, current_score, owned_stones):
 
 def calculate_hp(df):
     """
-    Oblicza aktualne punkty życia (HP) na podstawie historii.
-    Start: 100 HP.
-    IGLISKO: -25 HP
-    IGLUTEK: -10 HP
-    Apteczka (Sklep): +50 HP
-    Regeneracja (Noc): +5 HP (opcjonalnie, na razie pomińmy dla prostoty)
+    Oblicza HP, ale uwzględnia obrażenia TYLKO jeśli gracz osiągnął już status Agenta (60+ pkt).
+    W Prologu (0-59 pkt) jesteś nieśmiertelny.
     """
-    current_hp = 100 # Startowa wartość
+    current_hp = 100 
+    simulated_score = 0 # Śledzimy historię punktów
     
-    if df.empty: return current_hp
+    if df.empty: return 100
 
-    # Sortujemy chronologicznie, żeby symulacja przebiegła poprawnie
-    # (Zakładamy, że dane w arkuszu są chronologiczne, ale dla pewności)
-    # df = df.sort_values(by=['Data', 'Godzina']) 
+    # Sortujemy chronologicznie (od najstarszych), żeby poprawnie symulować rozwój
+    try:
+        df_sorted = df.sort_values(by=['Data', 'Godzina'], ascending=[True, True])
+    except:
+        df_sorted = df # Jak się nie da posortować, trudno, lecimy jak jest
 
-    for index, row in df.iterrows():
+    for index, row in df_sorted.iterrows():
+        try:
+            points = int(row.get('Punkty', 0))
+        except:
+            points = 0
+            
         status = str(row.get('Stan', ''))
         note = str(row.get('Notatka', ''))
         
-        # 1. Obrażenia
-        if status == "IGLISKO":
-            current_hp -= 20 # Mocny cios
-        elif status == "IGLUTEK":
-            current_hp -= 10 # Draśnięcie
-            
-        # 2. Leczenie (Wykrywanie zakupu apteczki w notatkach)
+        # Aktualizujemy symulowany wynik w danym momencie historii
+        simulated_score += points
+        
+        # === ZASADA: OBRAŻENIA WCHODZĄ TYLKO POWYŻEJ 60 PKT ===
+        if simulated_score >= 60:
+            # 1. Obrażenia
+            if status == "IGLISKO":
+                current_hp -= 20 
+            elif status == "IGLUTEK":
+                current_hp -= 10
+        
+        # 2. Leczenie (Działa zawsze, bo kupić można tylko mając 60+ pkt i sklep)
         if "SHOP_BUY" in note and "Apteczka" in note:
-            current_hp += 50
+            current_hp += 80 # Zwiększone leczenie!
             
-        # 3. Bezpieczniki (HP nie może być > 100 ani < 0)
+        # 3. Bezpieczniki
         current_hp = max(0, min(100, current_hp))
         
     return int(current_hp)
@@ -709,12 +718,17 @@ def main():
                 st.header("💎 Skarbiec Nieskończoności")
     
             st.metric(label="Moc całkowita (EXP)", value=current_score, delta=st.session_state.last_points_change)
-            # --- NOWE: Pasek Życia w Sidebarze ---
-            hp_color = "red" if current_hp < 30 else "green"
-            st.write(f"❤️ **Stan Zdrowia:** {current_hp}/100")
-            st.progress(current_hp / 100, text=None)
-            if current_hp == 0:
-                st.error("STAN KRYTYCZNY! WYMAGANA HOSPITALIZACJA!")
+            
+            # --- ZMIANA: Pasek HP widoczny tylko od 60 pkt ---
+            if current_score >= 60:
+                hp_color = "red" if current_hp < 30 else "green"
+                st.write(f"❤️ **Stan Zdrowia:** {current_hp}/100")
+                st.progress(current_hp / 100, text=None)
+                if current_hp == 0:
+                    st.error("STAN KRYTYCZNY! SZPITAL!")
+            else:
+                st.info("❤️ Zdrowie: Chronione (Prolog)")
+            # -------------------------------------------------
             
             if streak_count >= 3:
                 st.write("---")
@@ -1071,38 +1085,36 @@ def main():
     selected = None  # Domyślnie brak wyboru
     
     # --- 💀 LOGIKA ŚMIERCI (Nowy kod) ---
-    if current_hp <= 0:
-        # Wyświetlamy komunikat o szpitalu
+# --- 🏥 LOGIKA SZPITALA (Warunek: Agent + 0 HP) ---
+    # Blokada działa TYLKO jeśli wyszliśmy z Prologu (score >= 60) I mamy 0 HP
+    if current_score >= 60 and current_hp <= 0:
         st.error("💀 JESTEŚ W SZPITALU (0 HP)!")
-        st.info("Nie możesz podejmować akcji, dopóki nie odzyskasz sił.")
+        st.info("Systemy podtrzymywania życia aktywne. Nie możesz podejmować akcji.")
         st.warning("👉 Idź do Sklepu i kup 'Apteczkę S.H.I.E.L.D.', aby wrócić do gry.")
         
-        # Opcjonalny obrazek szpitala (jeśli masz plik hospital.jpg, jak nie - olej)
         if os.path.exists("hospital.jpg"):
             st.image("hospital.jpg", caption="Odpoczywaj, bohaterze...")
             
-        # Tutaj NIE RYSUJEMY przycisków, więc Paweł nie może nic kliknąć.
-    
+        # Zmienna selected zostaje None, więc nic się nie wykona
+
     else:
-        # --- ❤️ JESTEŚ ŻYWY (Twój stary kod, ale wcięty) ---
+        # --- ✅ JESTEŚ ŻYWY LUB W PROLOGU (Rysujemy przyciski) ---
         cols = st.columns(5)
         
-        # --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
+        # Logika punktacji (Standard vs Impreza)
         if st.session_state.party_mode:
-            # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
             score_iglica = 5
             score_igla = 2
             score_iglik = 0
             score_iglute = -6
             score_iglisko = -12
         else:
-            # TRYB STANDARD: Zbalansowany rozwój
             score_iglica = 3
             score_igla = 1
             score_iglik = 0
             score_iglute = -2
             score_iglisko = -4
-        
+            
         # Definicja przycisków
         buttons = [
             (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
@@ -1112,7 +1124,7 @@ def main():
             (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
         ]
         
-        # Rysowanie przycisków (pętla)
+        # Rysowanie przycisków
         for label, status, points, col in buttons:
             if col.button(f"{label}\n({points:+})", use_container_width=True):
                 selected = (status, points)
@@ -1460,6 +1472,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

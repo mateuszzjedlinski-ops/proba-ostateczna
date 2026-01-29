@@ -863,24 +863,33 @@ def main():
             explore_percent = max(0.0, min(1.0, explore_percent))
             st.progress(explore_percent, text=f"Eksploracja Świata: {int(explore_percent * 100)}%")
     
-    # --- ZAKŁADKA 2: STATYSTYKI ---
-    with tab2:
-        st.header("📊 Raport Agenta")
+# --- ZAKŁADKA 2: STATYSTYKI ---
+with tab2:
+    st.header("📊 Raport Agenta")
+    
+    # UKRYWANIE KAMIENI W PROLOGU (Żeby nie psuć niespodzianki)
+    if current_score < 60:
+        # Wersja dla Stażysty (Tylko 2 kolumny)
+        c1, c2 = st.columns(2)
+        c1.metric("Całkowity EXP", f"{current_score}")
+        c2.metric("Seria Dni", f"{streak_count} 🔥")
+    else:
+        # Wersja dla Agenta (3 kolumny - dochodzą Kamienie)
         c1, c2, c3 = st.columns(3)
         c1.metric("Całkowity EXP", f"{current_score}")
         c2.metric("Kamienie", f"{owned_stones}/6")
         c3.metric("Seria Dni", f"{streak_count} 🔥")
-        
-        st.markdown("---")
-        
-        if not df.empty:
-            st.subheader("📈 Historia Aktywności")
-            try:
-                chart_data = df[['Data', 'Punkty']].copy()
-                chart_data = chart_data.groupby('Data')['Punkty'].sum().reset_index()
-                st.line_chart(chart_data, x='Data', y='Punkty')
-            except:
-                st.caption("Za mało danych na wykres.")
+    
+    st.markdown("---")
+    
+    if not df.empty:
+        st.subheader("📈 Historia Aktywności")
+        try:
+            chart_data = df[['Data', 'Punkty']].copy()
+            chart_data = chart_data.groupby('Data')['Punkty'].sum().reset_index()
+            st.line_chart(chart_data, x='Data', y='Punkty')
+        except:
+            st.caption("Za mało danych na wykres.")
     
     # --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
     if tab3 is not None:
@@ -1239,6 +1248,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

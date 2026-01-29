@@ -820,6 +820,13 @@ def main():
     # --- ZAKŁADKA 1: MISJA DNIA ---
     with tab1:
         st.header("🎬 Dziennik Iglasty")
+
+        # --- 📜 CYTAT DNIA (TERAZ TUTAJ - POD NAGŁÓWKIEM) ---
+        st.markdown(f"""
+        <div style='text-align: center; color: #808080; font-style: italic; font-size: 0.9em; margin-bottom: 15px; padding: 10px; background-color: #262730; border-radius: 5px;'>
+            ❝ {daily_quote} ❞
+        </div>
+        """, unsafe_allow_html=True)
         
         # A. ETAP SKARBCA (60+ PKT)
         if current_score >= 60:
@@ -862,13 +869,6 @@ def main():
             explore_percent = current_score / 60.0
             explore_percent = max(0.0, min(1.0, explore_percent))
             st.progress(explore_percent, text=f"Eksploracja Świata: {int(explore_percent * 100)}%")
-            # --- 📜 CYTAT DNIA (DODANY NA DOLE ZAKŁADKI) ---
-        st.markdown("---")
-        st.markdown(f"""
-        <div style='text-align: center; color: #808080; font-style: italic; font-size: 0.9em; padding: 10px; background-color: #262730; border-radius: 5px;'>
-            ❝ {daily_quote} ❞
-        </div>
-        """, unsafe_allow_html=True)
     
 # --- ZAKŁADKA 2: STATYSTYKI ---
     with tab2:
@@ -1275,6 +1275,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

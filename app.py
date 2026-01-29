@@ -39,7 +39,7 @@ SHOP_INVENTORY = {
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
     page_title="Dziennik Iglasty",
-    page_icon="🦔",
+    page_icon="app_icon.png",
     layout="centered"
 )
 
@@ -1275,6 +1275,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -861,7 +861,7 @@ def main():
     # 1. Definiujemy zakładki DYNAMICZNIE (Sklep ukryty w Prologu)
     if current_score >= 60:
         # Wersja pełna (3 zakładki)
-        tab1, tab2, tab3 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki", "🛒 Sklep"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📋 Misja Dnia", "📊 Statystyki", "🛒 Sklep", "⚙️ Ustawienia"])
     else:
         # Wersja demo (2 zakładki - Sklep jest niewidzialny)
         tab1, tab2 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki"])
@@ -1022,6 +1022,39 @@ def main():
                                         st.rerun()
                                         
                     st.markdown("---")
+
+    # --- ZAKŁADKA 4: USTAWIENIA (PRZYPOMNIENIA) ---
+        if tab4 is not None:
+            with tab4:
+                st.header("⚙️ Centrum Konfiguracji")
+                st.write("Dostosuj parametry swojej misji.")
+                st.markdown("---")
+                
+                st.subheader("📅 Przypomnienia")
+                st.info("Regularność to klucz do sukcesu Agenta. Ustaw przypomnienie w kalendarzu, aby nie stracić passy (Streak)!")
+                
+                # Konfiguracja linku do Kalendarza Google
+                # To tworzy gotowe wydarzenie z linkiem do Twojej apki
+                base_calendar_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+                event_title = "🦔 Dziennik Iglasty - Raport"
+                event_details = "Czas uzupełnić dziennik i sprawdzić postępy Agenta! 👉 https://pawel-lvl30.streamlit.app"
+                
+                # Możemy dodać parametr recurrence (powtarzanie), np. codziennie
+                # RRULE:FREQ=DAILY oznacza powtarzanie codzienne
+                calendar_url = f"{base_calendar_url}&text={event_title}&details={event_details}&recur=RRULE:FREQ=DAILY"
+                
+                col_sets_1, col_sets_2 = st.columns([1, 2])
+                with col_sets_1:
+                    st.markdown("### 🔔")
+                with col_sets_2:
+                    st.write("**Codzienny Raport**")
+                    st.caption("Kliknij, aby dodać stałe przypomnienie do swojego Kalendarza Google.")
+                    
+                    # Przycisk linkujący
+                    st.link_button("📅 Dodaj do Kalendarza", calendar_url)
+                
+                st.markdown("---")
+                st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
         
     st.markdown("---")
     # (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
@@ -1427,6 +1460,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

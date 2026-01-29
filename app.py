@@ -898,7 +898,7 @@ def main():
             except:
                 st.caption("Za mało danych na wykres.")
         
-        # --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
+# --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
         if tab3 is not None:
             with tab3:
                 st.header("🛒 Czarny Rynek Artefaktów")
@@ -917,7 +917,7 @@ def main():
                 st.info(f"📦 Obecna dostawa: **{rotation_names[shop_rotation_index]}**")
                 st.caption("Oferta zmienia się co 2 miesiące.")
         
-                # 3. Lista Artefaktów
+                # 3. Lista Artefaktów (Z ZABEZPIECZENIAMI)
                 for item in current_offer:
                     c1, c2, c3 = st.columns([1, 3, 2])
                     with c1:
@@ -928,19 +928,49 @@ def main():
                         st.markdown(f"**Bohater:** {item['hero']}")
                     with c3:
                         price = item['cost']
-                        if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
-                            if wallet >= price:
-                                note_content = f"SHOP_BUY | {item['name']} | -{price}"
-                                save_to_sheets("ZAKUP", 0, "Sklep", False, note_content)
-                                st.balloons()
-                                st.success(f"✅ Kupiłeś: {item['name']}")
-                                st.info(item['reaction']) 
-                                if os.path.exists("chaos_event.mp3"):
-                                    st.audio("chaos_event.mp3", autoplay=True)
-                                time.sleep(4)
-                                st.rerun()
-                            else:
-                                st.error(f"Brakuje ci {price - wallet} kredytów!")
+                        
+                        # --- ZABEZPIECZENIE NR 2: BLOKADA UNIKATÓW ---
+                        # Sprawdzamy, czy w historii notatek jest już zakup tego przedmiotu
+                        already_owned = False
+                        if not df.empty and 'Notatka' in df.columns:
+                            # Szukamy dokładnego stringa identyfikującego zakup
+                            # regex=False jest ważne, bo nazwy mogą mieć znaki specjalne
+                            search_str = f"SHOP_BUY | {item['name']}"
+                            already_owned = df['Notatka'].astype(str).str.contains(search_str, regex=False).any()
+
+                        if already_owned:
+                            st.button(f"✅ Już posiadasz", key=f"btn_owned_{item['name']}", disabled=True)
+                        else:
+                            # Przycisk zakupu (aktywny)
+                            if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
+                                
+                                # --- ZABEZPIECZENIE NR 3: LAG CLICK / RACE CONDITION ---
+                                with st.spinner("Weryfikacja transakcji..."):
+                                    # 1. Wymuszamy wyczyszczenie cache, żeby pobrać najnowsze dane z chmury
+                                    get_data_from_sheets.clear()
+                                    
+                                    # 2. Pobieramy świeży stan
+                                    fresh_df = get_data_from_sheets()
+                                    fresh_wallet = calculate_currency(fresh_df, current_score, owned_stones)
+                                    
+                                    # 3. Sprawdzamy saldo OSTATNI RAZ
+                                    if fresh_wallet < price:
+                                        st.error("❌ Transakcja odrzucona! Stan konta się zmienił (za mało środków).")
+                                    else:
+                                        # Jeśli wszystko gra -> Kupujemy
+                                        note_content = f"SHOP_BUY | {item['name']} | -{price}"
+                                        save_to_sheets("ZAKUP", 0, "Sklep", False, note_content)
+                                        
+                                        st.balloons()
+                                        st.success(f"✅ Kupiłeś: {item['name']}")
+                                        st.info(item['reaction']) 
+                                        
+                                        if os.path.exists("chaos_event.mp3"):
+                                            st.audio("chaos_event.mp3", autoplay=True)
+                                            
+                                        time.sleep(4)
+                                        st.rerun()
+                                        
                     st.markdown("---")
         
     st.markdown("---")
@@ -1333,6 +1363,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

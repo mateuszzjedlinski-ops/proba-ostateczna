@@ -314,7 +314,7 @@ def calculate_currency(df, current_score, owned_stones):
     # --- 1. BONUSY STAŁE (Działają nawet przy pustym arkuszu!) ---
     
     # A. Grant na start Sklepu (Poziom 60+)
-    if current_score >= 58:
+    if current_score >= 60:
         balance += 300 
 
     # B. Bonus za Kamienie (max 5 płatnych)
@@ -652,7 +652,7 @@ def main():
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
     current_score = get_total_score(df)
-    current_score = 60
+    current_score = 58
     streak_count, streak_type = calculate_current_streak(df)
     current_hp = calculate_hp(df)
 
@@ -1528,6 +1528,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

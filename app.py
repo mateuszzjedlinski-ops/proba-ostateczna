@@ -455,7 +455,6 @@ def get_smart_image_filename(cycle, owned_stones, cycle_progress):
 def play_level_up_animation(new_cycle):
     # 1. BEZPIECZNIK: Definiujemy zmienną na start, żeby uniknąć NameError
     filename = None 
-    
     placeholder = st.empty()
 
     # --- SCENARIUSZ A: OTWARCIE SKARBCA (Level 1 - Animacja Kodowa) ---
@@ -505,7 +504,7 @@ def play_level_up_animation(new_cycle):
             
             # Terminalowy komunikat
             st.code("SYSTEM: ONLINE\nCEL: ZEBRAĆ JE WSZYSTKIE\nSTATUS: BOHATER", language="bash")
-            time.sleep(2.5)
+            time.sleep(4)
 
     # --- SCENARIUSZ B: WYŻSZE POZIOMY (Opcjonalne Wideo) ---
     elif new_cycle == 2:
@@ -515,11 +514,16 @@ def play_level_up_animation(new_cycle):
 
     # 4. ODTWARZANIE WIDEO (Tylko jeśli zdefiniowano filename)
     # To jest ten fragment, który wcześniej wywoływał błąd
-    if filename is not None and os.path.exists(filename):
-        with placeholder.container():
-            st.balloons()
-            st.video(filename, autoplay=True)
-            time.sleep(8)
+    if filename: 
+        if os.path.exists(filename):
+            with placeholder.container():
+                st.balloons()
+                st.video(filename, autoplay=True)
+                time.sleep(8)
+        else:
+            # Jeśli plik wideo nie istnieje, ale miał być (dla level 2 i 3)
+            st.toast(f"🎉 AWANS! (Brak pliku: {filename})", icon="🎬")
+            time.sleep(3)
     
     # Czyszczenie po animacji
     time.sleep(1)
@@ -1534,6 +1538,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

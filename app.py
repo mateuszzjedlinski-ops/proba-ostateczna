@@ -16,7 +16,9 @@ SHOP_INVENTORY = {
         {"name": "🔫 Złote Gnaty Deadpoola", "desc": "Dwie repliki Desert Eagle. Symbolizują 'Dziką Kartę' - wygranie dowolnej dyskusji bez argumentów.", "cost": 480, "icon": "🔫", "hero": "Deadpool", "reaction": "🌮 DEADPOOL: Ooo tak! Widzisz jak błyszczą? Chcę 10% z każdego fraga. I chimichangę."},
         {"name": "🔨 Mjolnir (Replika)", "desc": "Jeśli go kupisz, jesteś Godzien. Zwalnia z jednego ciężkiego obowiązku domowego.", "cost": 640, "icon": "🔨", "hero": "Thor", "reaction": "🍺 THOR: HA! Wiedziałem, że masz iskrę! Tylko uważaj, jest trochę... naelektryzowany."},
         {"name": "🛡️ Przepustka S.H.I.E.L.D.", "desc": "Dokument od Nicka Fury'ego. Gwarantuje nietykalność i święty spokój przez ustalony czas.", "cost": 960, "icon": "🏖️", "hero": "Nick Fury", "reaction": "👁️ NICK FURY: Dobra robota, żołnierzu. Znikaj mi z oczu. Masz wolne."},
-        {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 1200, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"}
+        {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 1200, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"},
+        # ... inne przedmioty ...
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
     ],
     # 🛒 ROTACJA 2: AVENGERS ASSEMBLE (Kwiecień-Maj / Październik-Listopad)
     1: [
@@ -24,7 +26,9 @@ SHOP_INVENTORY = {
         {"name": "🩳 Fioletowe Szorty Hulka", "desc": "Prawo do 'Niekontrolowanego Wybuchu' - możesz marudzić przez 10 min, a ja tylko przytakuję.", "cost": 440, "icon": "🩳", "hero": "Bruce Banner", "reaction": "🧪 BANNER: Są trochę rozciągnięte... ale działają. Tylko nie zzielenej mi tu."},
         {"name": "🏹 Łuk Hawkeye'a", "desc": "Daje Ci 'Celny Strzał' - Ty wybierasz film na wieczór i nie ma dyskusji.", "cost": 560, "icon": "🏹", "hero": "Hawkeye", "reaction": "🎯 HAWKEYE: Trafiłeś w dziesiątkę. Pamiętaj - masz tylko jedną strzałę tego typu."},
         {"name": "🇺🇸 Tarcza Kapitana", "desc": "Użyj, aby zrobić 'UNIK' od jednego nudnego spotkania lub wyjścia.", "cost": 720, "icon": "🛡️", "hero": "Steve Rogers", "reaction": "🫡 CAPTAIN AMERICA: Odpocznij, żołnierzu. Zasłużyłeś na przepustkę."},
-        {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 880, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."}
+        {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 880, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."},
+        # ... inne przedmioty ...
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
     ],
     # 🛒 ROTACJA 3: MAGIA I KOSMOS (Czerwiec-Lipiec / Grudzień-Styczeń)
     2: [
@@ -32,7 +36,9 @@ SHOP_INVENTORY = {
         {"name": "👁️ Oko Agamotto", "desc": "Kamień Czasu. 'Cofnięcie Czasu' - anulowanie jednego głupiego tekstu bez konsekwencji.", "cost": 520, "icon": "🧿", "hero": "Dr. Strange", "reaction": "🧙‍♂️ DR. STRANGE: Używaj rozważnie. Nie psuj kontinuum dla pizzy... chociaż..."},
         {"name": "🧪 Cząsteczki Pyma", "desc": "'Skurczenie problemu' - skracamy o połowę czas trwania wizyty gości lub zakupów.", "cost": 680, "icon": "🐜", "hero": "Ant-Man", "reaction": "🔬 ANT-MAN: Gdzie to położyłem?! A, masz je. Nie wciśnij niebieskiego guzika!"},
         {"name": "😼 Pazury Czarnej Pantery", "desc": "Królewski luksus. Wymień na: 15-minutowy masaż karku/stóp.", "cost": 800, "icon": "🐾", "hero": "Black Panther", "reaction": "👑 T'CHALLA: Nie zamarzam. I Ty też nie będziesz. Przyjmij to jako dar od Wakandy."},
-        {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 1120, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"}
+        {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 1120, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"},
+        # ... inne przedmioty ...
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Przywraca 50 HP. Wymagana, gdy wylądujesz w szpitalu (0 HP).", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Masz szczęście, że to tylko draśnięcie. Wracaj do walki."}
     ]
 }
 
@@ -341,6 +347,42 @@ def calculate_currency(df, current_score, owned_stones):
 
     return max(0, balance)
 
+def calculate_hp(df):
+    """
+    Oblicza aktualne punkty życia (HP) na podstawie historii.
+    Start: 100 HP.
+    IGLISKO: -25 HP
+    IGLUTEK: -10 HP
+    Apteczka (Sklep): +50 HP
+    Regeneracja (Noc): +5 HP (opcjonalnie, na razie pomińmy dla prostoty)
+    """
+    current_hp = 100 # Startowa wartość
+    
+    if df.empty: return current_hp
+
+    # Sortujemy chronologicznie, żeby symulacja przebiegła poprawnie
+    # (Zakładamy, że dane w arkuszu są chronologiczne, ale dla pewności)
+    # df = df.sort_values(by=['Data', 'Godzina']) 
+
+    for index, row in df.iterrows():
+        status = str(row.get('Stan', ''))
+        note = str(row.get('Notatka', ''))
+        
+        # 1. Obrażenia
+        if status == "IGLISKO":
+            current_hp -= 20 # Mocny cios
+        elif status == "IGLUTEK":
+            current_hp -= 10 # Draśnięcie
+            
+        # 2. Leczenie (Wykrywanie zakupu apteczki w notatkach)
+        if "SHOP_BUY" in note and "Apteczka" in note:
+            current_hp += 50
+            
+        # 3. Bezpieczniki (HP nie może być > 100 ani < 0)
+        current_hp = max(0, min(100, current_hp))
+        
+    return int(current_hp)
+
 def get_smart_image_filename(cycle, owned_stones, cycle_progress):
     # Domyślne wartości
     level_num = 1
@@ -578,6 +620,7 @@ def main():
     # Pobieranie danych z Google Sheets
     df = get_data_from_sheets()
     current_score = get_total_score(df)
+    current_hp = calculate_hp(df)
     streak_count, streak_type = calculate_current_streak(df)
     
     cycle, owned_stones, cycle_progress = calculate_game_state(current_score)
@@ -665,6 +708,12 @@ def main():
                 st.header("💎 Skarbiec Nieskończoności")
     
             st.metric(label="Moc całkowita (EXP)", value=current_score, delta=st.session_state.last_points_change)
+            # --- NOWE: Pasek Życia w Sidebarze ---
+            hp_color = "red" if current_hp < 30 else "green"
+            st.write(f"❤️ **Stan Zdrowia:** {current_hp}/100")
+            st.progress(current_hp / 100, text=None)
+            if current_hp == 0:
+                st.error("STAN KRYTYCZNY! WYMAGANA HOSPITALIZACJA!")
             
             if streak_count >= 3:
                 st.write("---")
@@ -984,41 +1033,55 @@ def main():
         # Parametr key="party_mode" łączy przełącznik z pamięcią
         st.toggle("Tryb Impreza 🔥", key="party_mode")
     
-    st.write("")
-    cols = st.columns(5)
-    selected = None
-    
-    # --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
-    # To jest ten nowy fragment, który wklejasz
-    if st.session_state.party_mode:
-        # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
-        score_iglica = 5
-        score_igla = 2
-        score_iglik = 0
-        score_iglute = -6
-        score_iglisko = -12
+st.write("")
+    selected = None  # Domyślnie brak wyboru
+
+    # --- 💀 LOGIKA ŚMIERCI (Nowy kod) ---
+    if current_hp <= 0:
+        # Wyświetlamy komunikat o szpitalu
+        st.error("💀 JESTEŚ W SZPITALU (0 HP)!")
+        st.info("Nie możesz podejmować akcji, dopóki nie odzyskasz sił.")
+        st.warning("👉 Idź do Sklepu i kup 'Apteczkę S.H.I.E.L.D.', aby wrócić do gry.")
+        
+        # Opcjonalny obrazek szpitala (jeśli masz plik hospital.jpg, jak nie - olej)
+        if os.path.exists("hospital.jpg"):
+            st.image("hospital.jpg", caption="Odpoczywaj, bohaterze...")
+            
+        # Tutaj NIE RYSUJEMY przycisków, więc Paweł nie może nic kliknąć.
+
     else:
-        # TRYB STANDARD: Zbalansowany rozwój
-        score_iglica = 3
-        score_igla = 1
-        score_iglik = 0
-        score_iglute = -2
-        score_iglisko = -4
-    
-    # Definicja przycisków z dynamicznymi punktami
-    buttons = [
-        (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
-        (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
-        (f"🌿 IGLIK", "IGLIK", score_iglik, cols[2]),
-        (f"🍂 IGLUTEK", "IGLUTEK", score_iglute, cols[3]),
-        (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
-    ]
-    
-    # 1. Rysowanie przycisków (To jest pętla)
-    for label, status, points, col in buttons:
-        # Wyświetlamy punkty na przycisku (np. "+5" lub "-12")
-        if col.button(f"{label}\n({points:+})", use_container_width=True):
-            selected = (status, points)
+        # --- ❤️ JESTEŚ ŻYWY (Twój stary kod, ale wcięty) ---
+        cols = st.columns(5)
+        
+        # --- LOGIKA PUNKTACJI (STANDARD vs IMPREZA) ---
+        if st.session_state.party_mode:
+            # TRYB IMPREZA: Rosyjska Ruletka (Wysokie ryzyko!)
+            score_iglica = 5
+            score_igla = 2
+            score_iglik = 0
+            score_iglute = -6
+            score_iglisko = -12
+        else:
+            # TRYB STANDARD: Zbalansowany rozwój
+            score_iglica = 3
+            score_igla = 1
+            score_iglik = 0
+            score_iglute = -2
+            score_iglisko = -4
+        
+        # Definicja przycisków
+        buttons = [
+            (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
+            (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
+            (f"🌿 IGLIK", "IGLIK", score_iglik, cols[2]),
+            (f"🍂 IGLUTEK", "IGLUTEK", score_iglute, cols[3]),
+            (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
+        ]
+        
+        # Rysowanie przycisków (pętla)
+        for label, status, points, col in buttons:
+            if col.button(f"{label}\n({points:+})", use_container_width=True):
+                selected = (status, points)
     
     if selected:
         status, points = selected
@@ -1363,6 +1426,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

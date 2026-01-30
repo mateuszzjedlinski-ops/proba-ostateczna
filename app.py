@@ -590,6 +590,7 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         else:
             # --- TRYB STANDARD (Deadpool + Rocket Mix) ---
             # (Tutaj zostaje bez zmian, bo jest dobrze)
+            personality = """
             TRYB: ROCKET RACCOON & DEADPOOL (Zero IT, 100% Chaos).
             
             Twoim zadaniem jest komentowanie życia Pawła.
@@ -1566,6 +1567,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

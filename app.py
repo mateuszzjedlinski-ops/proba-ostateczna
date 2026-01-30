@@ -1161,40 +1161,26 @@ def main():
         st.toggle("Tryb Impreza 🔥", key="party_mode")
     
     st.write("")
-    selected = None  # Domyślnie brak wyboru
+selected = None  # Reset wyboru
     
-    # --- 💀 LOGIKA ŚMIERCI (Nowy kod) ---
-# --- 🏥 LOGIKA SZPITALA (Warunek: Agent + 0 HP) ---
-    # Blokada działa TYLKO jeśli wyszliśmy z Prologu (score >= 60) I mamy 0 HP
+    # --- 💀 LOGIKA SZPITALA (Warunek: Agent + 0 HP) ---
     if current_score >= 60 and current_hp <= 0:
         st.error("💀 JESTEŚ W SZPITALU (0 HP)!")
         st.info("Systemy podtrzymywania życia aktywne. Nie możesz podejmować akcji.")
         st.warning("👉 Idź do Sklepu i kup 'Apteczkę S.H.I.E.L.D.', aby wrócić do gry.")
-        
         if os.path.exists("hospital.jpg"):
             st.image("hospital.jpg", caption="Odpoczywaj, bohaterze...")
             
-        # Zmienna selected zostaje None, więc nic się nie wykona
-
     else:
-        # --- ✅ JESTEŚ ŻYWY LUB W PROLOGU (Rysujemy przyciski) ---
+        # --- ✅ JESTEŚ ŻYWY (Rysujemy przyciski) ---
         cols = st.columns(5)
         
-        # Logika punktacji (Standard vs Impreza)
+        # Konfiguracja punktów
         if st.session_state.party_mode:
-            score_iglica = 5
-            score_igla = 2
-            score_iglik = 0
-            score_iglute = -6
-            score_iglisko = -12
+            score_iglica = 5; score_igla = 2; score_iglik = 0; score_iglute = -6; score_iglisko = -12
         else:
-            score_iglica = 3
-            score_igla = 1
-            score_iglik = 0
-            score_iglute = -2
-            score_iglisko = -4
+            score_iglica = 3; score_igla = 1; score_iglik = 0; score_iglute = -2; score_iglisko = -4
             
-        # Definicja przycisków
         buttons = [
             (f"🗻 IGLICA", "IGLICA", score_iglica, cols[0]),
             (f"💎 IGŁA", "IGŁA", score_igla, cols[1]),
@@ -1203,214 +1189,115 @@ def main():
             (f"💀 IGLISKO", "IGLISKO", score_iglisko, cols[4])
         ]
         
-        # Rysowanie przycisków
-        for label, status, points, col in buttons:
-            if col.button(f"{label}\n({points:+})", use_container_width=True):
-                selected = (status, points)
+        # PĘTLA TWORZĄCA PRZYCISKI (Tutaj był problem z wyciekiem zmiennej!)
+        for label, btn_status, btn_points, col in buttons:
+            # Używamy unikalnego klucza (key), żeby Streamlit nie gubił się w stanie
+            if col.button(f"{label}\n({btn_points:+})", key=f"btn_{btn_status}", use_container_width=True):
+                selected = (btn_status, btn_points)
     
+    # --- LOGIKA PO KLIKNIĘCIU (Twoja sprawdzona sekcja) ---
     if selected:
-        status, points = selected
-
-        if points > 0: # Działa tylko przy zdobywaniu punktów
+        status, points = selected # <--- TO JEST KLUCZOWE ROZPAKOWANIE
+        
+        # 1. LEVEL GATE (BRAMA SKARBCA)
+        if points > 0: 
             current_cycle_num = current_score // 60
             next_threshold = (current_cycle_num + 1) * 60
-            
-            # Sprawdzamy, czy ten ruch przebiłby sufit
             if current_score < next_threshold and (current_score + points) > next_threshold:
-                # Obliczamy ile brakuje do równego progu
                 diff = next_threshold - current_score
-                
-                # Nadpisujemy punkty
                 points = diff 
-                
-                # Informacja dla Pawła
-                st.toast(f"🛑 DOTARŁEŚ DO BRAMY SKARBCA! (Zatrzymano na {next_threshold} pkt)", icon="🛡️")
+                st.toast(f"🛑 DOTARŁEŚ DO BRAMY SKARBCA! (Stop na {next_threshold} pkt)", icon="🛡️")
                 time.sleep(1)
-    
-        # ============================================================
-        # 👮 ANTI-CWANIAK SYSTEM: BLOKADA CIĄGÓW IMPREZOWYCH (PN-PT) 👮
-        # ============================================================
-        penalty_applied = False # Flaga, czy wlepiono mandat
-        
-        # Sprawdzamy tylko, jeśli włączony jest TRYB IMPREZA
+
+        # 2. ANTI-CWANIAK (IMPREZY W TYGODNIU)
+        penalty_applied = False
         if st.session_state.party_mode:
             today = datetime.now()
-            
-            # Sprawdzamy czy to dzień roboczy (0=Poniedziałek, 4=Piątek)
-            # Weekendy (5, 6) są święte - można imprezować.
-            if today.weekday() < 5: 
-                yesterday = today - timedelta(days=1)
-                yesterday_str = yesterday.strftime("%Y-%m-%d")
+            if today.weekday() < 5: # Pon-Czw (Piątek wieczór to już weekend)
+                yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")
                 today_str = today.strftime("%Y-%m-%d")
                 
-                # 1. Czy wczoraj była impreza? (Szukamy w historii)
+                # Czy wczoraj była impreza?
                 yesterday_party = False
                 if not df.empty and 'Tryb' in df.columns:
-                    # Sprawdzamy czy jest jakikolwiek wpis z wczoraj z Trybem "ON"
                     yesterday_party = not df[(df['Data'] == yesterday_str) & (df['Tryb'] == "ON")].empty
                 
                 if yesterday_party:
-                    # OHO! Mamy ciąg w tygodniu (Wczoraj + Dzisiaj)
-                    
-                    # 2. Sprawdzamy ile razy DZISIAJ już imprezował (zanim kliknął teraz)
+                    # Ile razy dzisiaj?
                     today_party_count = 0
                     if not df.empty and 'Tryb' in df.columns:
                          today_party_count = len(df[(df['Data'] == today_str) & (df['Tryb'] == "ON")])
                     
                     if today_party_count == 0:
-                        # SCENARIUSZ A: PIERWSZE OSTRZEŻENIE
-                        st.toast("🤨 Halo? Wczoraj też była impreza!", icon="👮")
-                        time.sleep(1.5)
-                        st.warning("⚠️ SYSTEM BEZPIECZEŃSTWA: Wykryto ciąg imprezowy w tygodniu roboczym. To jest OSTRZEŻENIE. Kolejna próba dzisiaj zakończy się MANDATEM (-100 kredytów).")
-                        # Dodajemy info do notatki, żeby został ślad w historii
-                        user_note += " [OSTRZEŻENIE: CIĄG IMPREZOWY]"
-                        
+                        st.toast("🤨 Ostrzeżenie: Ciąg imprezowy!", icon="👮")
+                        user_note += " [OSTRZEŻENIE: CIĄG]"
                     else:
-                        # SCENARIUSZ B: RECYDYWA (MANDAT)
                         penalty_applied = True
-                        
-                        # 1. Zabieramy 100 kredytów (Symulujemy zakup w sklepie o nazwie MANDAT)
-                        # Nadpisujemy notatkę tak, żeby funkcja calculate_currency to wyłapała
                         user_note = "SHOP_BUY | MANDAT ZA IMPREZOWANIE | -100"
-                        
-                        # 2. Zerujemy punkty EXP za tę akcję (lub dajemy minusowe)
-                        points = -10 # Dodatkowa kara w EXP
+                        points = -10 
                         status = "MANDAT 👮"
-                        
-                        # 3. Efekty wizualne i dźwiękowe
-                        if os.path.exists("error_sound.mp3"): # Jeśli masz jakiś dźwięk błędu/syreny
-                            st.audio("error_sound.mp3", autoplay=True)
-                        
-                        st.error("🚨 OSTRZEGAŁEM! ZOSTAŁEŚ UKARANY.")
-                        st.toast("💸 -100 Kredytów. Nie cwaniakuj.", icon="💸")
-                        time.sleep(2)
-        
-        # --- 🛡️ ANTI-CHEAT SYSTEM (BLOKADA 3 KLIKNIĘĆ) 🛡️ ---
-        # 1. Pobieramy dzisiejszą datę jako string (format taki jak w Google Sheets, np. YYYY-MM-DD)
-        today_str = datetime.now().strftime('%Y-%m-%d')
-        
-        # 2. Liczymy wpisy z dzisiaj
-        # Zakładam, że w df kolumna z datą nazywa się "Data". Jeśli masz "Date", zmień to tutaj!
+                        st.error("🚨 RECYDYWA! MANDAT -100 KREDYTÓW.")
+
+        # 3. ANTI-CHEAT (LIMIT 3 KLIKÓW)
+        today_str_ac = datetime.now().strftime('%Y-%m-%d')
         try:
-            todays_entries_count = len(df[df['Data'] == today_str])
-        except KeyError:
-            # Zabezpieczenie jakby kolumna nazywała się inaczej, np. ma spację
-            todays_entries_count = 0 
-            st.error("Błąd systemu: Nie widzę kolumny 'Data'. Ale gramy dalej.")
-    
-        # 3. Sprawdzamy limit (Max 3 dziennie)
-        if todays_entries_count >= 3:
-            # Lista złośliwych komentarzy
-            anti_cheat_msgs = [
-                "🛑 HEJ! Limit to 3 razy dziennie! Nie cwaniakuj.",
-                "😤 Chcesz przejść grę w tydzień? Zapomnij. Wróć jutro.",
-                "🐌 Wolniej, kowboju! Życie to maraton, nie sprint.",
-                "🚫 ERROR 404: Twoja cierpliwość nie znaleziona.",
-                "🤡 Myślisz, że System nie widzi? 3 akcje max!",
-                "💸 Za to kliknięcie pobrałbym opłatę, ale nie mam terminala.",
-                "🔒 Skarbiec jest zamknięty do 8:00 rano. Idź spać."
-            ]
+            todays_count = len(df[df['Data'] == today_str_ac])
+        except:
+            todays_count = 0
             
-            # Losujemy i wyświetlamy "nagrodę"
-            punishment = random.choice(anti_cheat_msgs)
-            
-            st.toast("🚨 WYKRYTO PRÓBĘ OSZUSTWA!")
-            time.sleep(0.5)
-            st.error(punishment)
-            
-            # Odtwarzamy dźwięk błędu (opcjonalnie, jeśli chcesz wkurzyć gracza)
-            # st.audio("error_sound.mp3") 
-            
-            time.sleep(2.5)
-            st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
-        # ----------------------------------------------------
-# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA DEADPOOL TYLKO W NAGRODACH) 🎵 ---
-    delay_time = 2.5  # Domyślny czas dla samego tekstu
+        if todays_count >= 3:
+            st.error("🛑 LIMIT 3 AKCJI DZIENNIE! Odpocznij.")
+            time.sleep(2)
+            st.rerun()
 
-    # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
-    if points > 0:
+        # 4. AUDIO & VISUAL FEEDBACK (Naprawiony)
+        delay_time = 2.5
         
-        # Sprawdzamy czy to IGLICA i czy jest STREAK (min. 2 w bazie + 1 teraz = 3)
-        is_streak_event = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
-
-        if is_streak_event:
-            # NAGRODA ZA STREAK 3+ (Tutaj Deadpool jest LOSOWO ze Star-Lordem)
-            iglica_options = [
-                # Opcja 1: Star-Lord
-                ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Seria utrzymana! Star-Lord wymiata!"),
-                # Opcja 2: Deadpool (Tylko tutaj!)
-                ("deadpool_dance.gif", "deadpool_music.mp3", "💃 COMBO BREAKER! Deadpool przejmuje show!")
-            ]
+        # A. SUKCES (IGLICA / IGŁA)
+        if points > 0:
+            is_streak = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
             
-            chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
-            
-            # SPRAWDZANIE PLIKÓW
-            if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
-                st.toast(f"🔥 SERIA: {streak_count + 1} DZIEŃ! JAZDA!", icon="🎉")
-                st.audio(chosen_audio, autoplay=True)
-                st.markdown("---")
-                st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
-                delay_time = 11.0 # Czas na taniec
-            else:
-                # DEBUG: Pokaż czego brakuje
-                missing = []
-                if not os.path.exists(chosen_audio): missing.append(chosen_audio)
-                if not os.path.exists(chosen_gif): missing.append(chosen_gif)
-                st.error(f"⚠️ GRATULACJE (Streak {streak_count+1}), ale brakuje plików: {', '.join(missing)}")
-        
-        else:
-            # ZWYKŁE KLIKNIĘCIE (Bez serii 3+)
-            if st.session_state.party_mode:
-                st.success("🦝 ROCKET: O, proszę. Jednak żyjesz. Nieźle.")
-            else:
-                if status == "IGLICA":
-                    st.success("✅ Solidna robota. Buduj serię dalej.")
-                else:
-                    st.success("💎 Mały krok dla jeża, wielki dla ludzkości.")
-
-    # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
-    elif points < 0:
-        
-        # Sprawdzamy czy to IGLISKO i czy to 3. wpadka z rzędu
-        is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
-        
-        if is_fail_streak:
-            
-            # SCENARIUSZ A: TRYB IMPREZA -> Thor Drunk (GIF + Audio)
-            if st.session_state.party_mode:
-                fail_gif = "thor_drunk.gif"
-                fail_audio = "thor_drunk.mp3"
-                fail_msg = "🍺 Thor by cię pocieszył, ale też ledwo stoi."
-
-                if os.path.exists(fail_audio) and os.path.exists(fail_gif):
-                    st.toast("💀 Ouch... Seria porażek!", icon="🥴")
-                    st.audio(fail_audio, autoplay=True)
-                    st.markdown("---")
-                    st.image(fail_gif, caption=fail_msg, use_container_width=True)
-                    delay_time = 11.0
-                else:
-                    st.error(f"💀 SERIA PORAŻEK! (Brakuje plików Thora)")
-            
-            # SCENARIUSZ B: TRYB STANDARD -> Rocket Raccoon (TYLKO TEKST)
-            # Tutaj usunęliśmy Deadpoola. Zostaje czysta szydera tekstowa.
-            else:
-                rocket_streak_insults = [
-                    "🦝 ROCKET: Trzecia wtopa z rzędu? Daj mi ten ster, zanim nas zabijesz!",
-                    "🦝 ROCKET: Serio? Mój chomik uczy się szybciej. A on nie żyje.",
-                    "🦝 ROCKET: Gratulacje. Właśnie pobiłeś rekord bycia beznadziejnym.",
-                    "🦝 ROCKET: Czy ty masz zamiar w ogóle trafić w dobry przycisk dzisiaj?"
+            if is_streak:
+                # Losujemy nagrodę (Star-Lord lub Deadpool)
+                rewards = [
+                    ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
+                    ("deadpool_dance.gif", "deadpool_music.mp3", "💃 COMBO! Deadpool przejmuje show!")
                 ]
-                st.error(random.choice(rocket_streak_insults))
-                # Nie wydłużamy delay_time, bo to tylko tekst
-        
-        else:
-            # Zwykła wpadka (bez serii)
-            rocket_insults = [
-                "🦝 ROCKET: Gratulacje, geniuszu.",
-                "🦝 ROCKET: Groot by to lepiej wybrał.",
-                "🦝 ROCKET: Amatorszczyzna."
-            ]
-            st.error(random.choice(rocket_insults))
+                gif, audio, cap = random.choice(rewards)
+                
+                if os.path.exists(audio) and os.path.exists(gif):
+                    st.toast(f"🔥 SERIA: {streak_count + 1}!", icon="🎉")
+                    st.audio(audio, autoplay=True)
+                    st.markdown("---")
+                    st.image(gif, caption=cap, use_container_width=True)
+                    delay_time = 10.0
+                else:
+                    st.success(f"🔥 SERIA UTRZYMANA! ({streak_count + 1} dzień)")
+            else:
+                if st.session_state.party_mode:
+                    st.success("🦝 ROCKET: Nieźle. Ale nie popadaj w zachwyt.")
+                else:
+                    st.success("💎 Mały krok dla jeża.")
+
+        # B. PORAŻKA (IGLISKO / MANDAT)
+        elif points < 0:
+            is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
+            
+            if is_fail_streak:
+                if st.session_state.party_mode:
+                    # Impreza -> Pijany Thor
+                    if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
+                        st.audio("thor_drunk.mp3", autoplay=True)
+                        st.image("thor_drunk.gif", caption="🍺 Thor też ma gorszy dzień.")
+                        delay_time = 8.0
+                    else:
+                        st.error("🍺 Seria porażek.")
+                else:
+                    # Standard -> Rocket (Tylko tekst)
+                    insults = ["🦝 ROCKET: Daj mi ster!", "🦝 ROCKET: Tragedia."]
+                    st.error(random.choice(insults))
+            else:
+                st.error("💀 Auć.")
     
     # --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
         # Działa na każdą opcję. Szansa 5%.
@@ -1575,6 +1462,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

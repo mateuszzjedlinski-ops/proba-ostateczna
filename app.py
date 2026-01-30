@@ -1161,7 +1161,7 @@ def main():
         st.toggle("Tryb Impreza 🔥", key="party_mode")
     
     st.write("")
-selected = None  # Reset wyboru
+    selected = None  # Reset wyboru
     
     # --- 💀 LOGIKA SZPITALA (Warunek: Agent + 0 HP) ---
     if current_score >= 60 and current_hp <= 0:
@@ -1462,6 +1462,7 @@ selected = None  # Reset wyboru
 
 if __name__ == "__main__":
     main()
+
 
 
 

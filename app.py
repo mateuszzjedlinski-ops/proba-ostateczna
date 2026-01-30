@@ -1324,85 +1324,93 @@ def main():
             time.sleep(2.5)
             st.rerun() # Odświeżamy stronę, żeby "odkliknąć" przycisk
         # ----------------------------------------------------
-    # --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA STREAK 3.0) 🎵 ---
-        delay_time = 2.5  # Domyślny, krótki czas (tylko tekst)
-    
-        # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
-        if points > 0:
+# --- 🎵 AUDIO & VISUAL FEEDBACK (WERSJA DEADPOOL TYLKO W NAGRODACH) 🎵 ---
+    delay_time = 2.5  # Domyślny czas dla samego tekstu
+
+    # 1. PUNKTY DODATNIE (IGLICA / IGŁA)
+    if points > 0:
+        
+        # Sprawdzamy czy to IGLICA i czy jest STREAK (min. 2 w bazie + 1 teraz = 3)
+        is_streak_event = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
+
+        if is_streak_event:
+            # NAGRODA ZA STREAK 3+ (Tutaj Deadpool jest LOSOWO ze Star-Lordem)
+            iglica_options = [
+                # Opcja 1: Star-Lord
+                ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Seria utrzymana! Star-Lord wymiata!"),
+                # Opcja 2: Deadpool (Tylko tutaj!)
+                ("deadpool_dance.gif", "deadpool_music.mp3", "💃 COMBO BREAKER! Deadpool przejmuje show!")
+            ]
             
-            if st.session_state.party_mode:
-                # --- SCENARIUSZ: IMPREZA (Zawsze tylko tekst) ---
-                rocket_respect = [
-                    "🦝 ROCKET: Ty chory draniu... udało ci się.",
-                    "🦝 ROCKET: Nie postawiłbym na ciebie złamanego kredytu.",
-                    "🦝 ROCKET: Jesteś świrem. Szanuję to.",
-                    "🦝 ROCKET: Wygrałeś, ale wyglądasz przy tym idiotycznie."
-                ]
-                st.success(random.choice(rocket_respect))
+            chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
             
+            # SPRAWDZANIE PLIKÓW
+            if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
+                st.toast(f"🔥 SERIA: {streak_count + 1} DZIEŃ! JAZDA!", icon="🎉")
+                st.audio(chosen_audio, autoplay=True)
+                st.markdown("---")
+                st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
+                delay_time = 11.0 # Czas na taniec
             else:
-                # --- SCENARIUSZ: STANDARD (Iglica vs Igła) ---
-                
-                # Sprawdzamy, czy to IGLICA i czy jest STREAK (min. 2 wcześniejsze + ten obecny = 3)
-                is_streak_event = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
-                
-                if is_streak_event:
-                    # NAGRODA ZA STREAK 3+ (Muzyka + Show)
-                    iglica_options = [
-                        ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Seria utrzymana! Star-Lord wymiata!"),
-                        ("deadpool_dance.gif", "deadpool_music.mp3", "💃 COMBO BREAKER! Deadpool przejmuje show!")
-                    ]
-                    
-                    chosen_gif, chosen_audio, chosen_caption = random.choice(iglica_options)
-                    
-                    if os.path.exists(chosen_audio) and os.path.exists(chosen_gif):
-                        st.toast(f"🔥 TO JUŻ {streak_count + 1} DZIEŃ SERII! IMPREZA!", icon="🎉")
-                        st.audio(chosen_audio, autoplay=True)
-                        st.markdown("---")
-                        st.image(chosen_gif, caption=chosen_caption, use_container_width=True)
-                        delay_time = 11.0 # Wydłużamy czas na show
-                    else:
-                        st.success(f"🔥 NIESAMOWITA SERIA! To już {streak_count + 1} raz z rzędu!")
-                
-                else:
-                    # ZWYKŁE KLIKNIĘCIE (Bez muzyki, krótki czas)
-                    if status == "IGLICA":
-                        st.success("✅ Solidna robota. Buduj serię dalej.")
-                    else:
-                        st.success("💎 Mały krok dla jeża, wielki dla ludzkości.")
-    
-        # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
-        elif points < 0:
-            
+                # DEBUG: Pokaż czego brakuje
+                missing = []
+                if not os.path.exists(chosen_audio): missing.append(chosen_audio)
+                if not os.path.exists(chosen_gif): missing.append(chosen_gif)
+                st.error(f"⚠️ GRATULACJE (Streak {streak_count+1}), ale brakuje plików: {', '.join(missing)}")
+        
+        else:
+            # ZWYKŁE KLIKNIĘCIE (Bez serii 3+)
             if st.session_state.party_mode:
-                # --- SCENARIUSZ: IMPREZA (Iglisko) ---
-                
-                # Sprawdzamy czy to IGLISKO i czy to już 3. wpadka z rzędu
-                is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
-                
-                if is_fail_streak:
-                    # KARA ZA SERIĘ WPADEK (Thor)
-                    if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
-                        st.toast("🍺 Ouch... To już seria porażek.", icon="🥴")
-                        st.audio("thor_drunk.mp3", autoplay=True)
-                        st.markdown("---")
-                        st.image("thor_drunk.gif", caption="🍺 Spokojnie, wciąż jesteś godzien... chyba.", use_container_width=True)
-                        delay_time = 11.0
-                    else:
-                        st.error("🍺 Thor by cię pocieszył, ale śpi. Ogarnij się.")
-                else:
-                    # Zwykła wpadka (bez muzyki)
-                    st.error("💀 Ale urwał! Uważaj na wątrobę.")
-            
+                st.success("🦝 ROCKET: O, proszę. Jednak żyjesz. Nieźle.")
             else:
-                # --- SCENARIUSZ: STANDARD (Rocket cisnie) ---
-                rocket_insults = [
-                    "🦝 ROCKET: Gratulacje, geniuszu. Obniżyłeś IQ całego statku.",
-                    "🦝 ROCKET: Groot by to lepiej wybrał. A on jest drzewem.",
-                    "🦝 ROCKET: Nie dotykaj niczego więcej, błagam.",
-                    "🦝 ROCKET: Amatorszczyzna. Nawet Drax by się uśmiał."
+                if status == "IGLICA":
+                    st.success("✅ Solidna robota. Buduj serię dalej.")
+                else:
+                    st.success("💎 Mały krok dla jeża, wielki dla ludzkości.")
+
+    # 2. PUNKTY UJEMNE (IGLISKO / IGLUTEK)
+    elif points < 0:
+        
+        # Sprawdzamy czy to IGLISKO i czy to 3. wpadka z rzędu
+        is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
+        
+        if is_fail_streak:
+            
+            # SCENARIUSZ A: TRYB IMPREZA -> Thor Drunk (GIF + Audio)
+            if st.session_state.party_mode:
+                fail_gif = "thor_drunk.gif"
+                fail_audio = "thor_drunk.mp3"
+                fail_msg = "🍺 Thor by cię pocieszył, ale też ledwo stoi."
+
+                if os.path.exists(fail_audio) and os.path.exists(fail_gif):
+                    st.toast("💀 Ouch... Seria porażek!", icon="🥴")
+                    st.audio(fail_audio, autoplay=True)
+                    st.markdown("---")
+                    st.image(fail_gif, caption=fail_msg, use_container_width=True)
+                    delay_time = 11.0
+                else:
+                    st.error(f"💀 SERIA PORAŻEK! (Brakuje plików Thora)")
+            
+            # SCENARIUSZ B: TRYB STANDARD -> Rocket Raccoon (TYLKO TEKST)
+            # Tutaj usunęliśmy Deadpoola. Zostaje czysta szydera tekstowa.
+            else:
+                rocket_streak_insults = [
+                    "🦝 ROCKET: Trzecia wtopa z rzędu? Daj mi ten ster, zanim nas zabijesz!",
+                    "🦝 ROCKET: Serio? Mój chomik uczy się szybciej. A on nie żyje.",
+                    "🦝 ROCKET: Gratulacje. Właśnie pobiłeś rekord bycia beznadziejnym.",
+                    "🦝 ROCKET: Czy ty masz zamiar w ogóle trafić w dobry przycisk dzisiaj?"
                 ]
-                st.error(random.choice(rocket_insults))
+                st.error(random.choice(rocket_streak_insults))
+                # Nie wydłużamy delay_time, bo to tylko tekst
+        
+        else:
+            # Zwykła wpadka (bez serii)
+            rocket_insults = [
+                "🦝 ROCKET: Gratulacje, geniuszu.",
+                "🦝 ROCKET: Groot by to lepiej wybrał.",
+                "🦝 ROCKET: Amatorszczyzna."
+            ]
+            st.error(random.choice(rocket_insults))
     
     # --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
         # Działa na każdą opcję. Szansa 5%.
@@ -1567,6 +1575,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -402,6 +402,8 @@ def init_session_state():
         st.session_state.last_points_change = 0
     if 'snap_played' not in st.session_state:
         st.session_state.snap_played = False
+    if 'last_click_time' not in st.session_state:
+        st.session_state.last_click_time = 0
 
 def get_polish_time():
     """Zwraca obecny czas w strefie Europe/Warsaw"""
@@ -1507,6 +1509,19 @@ def main():
     
     # --- LOGIKA PO KLIKNIĘCIU (Twoja sprawdzona sekcja) ---
     if selected:
+
+        # 👇👇👇 POCZĄTEK BLOKADY SPAMU (DEBOUNCE) 👇👇👇
+        import time # Upewnij się, że time jest zaimportowane (jest na górze pliku, więc ok)
+        current_time = time.time()
+        
+        # Sprawdzamy czy minęły 2 sekundy od ostatniego kliknięcia
+        if current_time - st.session_state.last_click_time < 2.0:
+            st.warning("⏳ Wolniej, kowboju! System przetwarza poprzednią akcję...")
+            st.stop() # Zatrzymujemy skrypt - nic się nie zapisze
+        
+        # Jeśli przeszło test, aktualizujemy czas
+        st.session_state.last_click_time = current_time
+        # 👆👆👆 KONIEC BLOKADY SPAMU 👆👆👆
         status, points = selected # <--- TO JEST KLUCZOWE ROZPAKOWANIE
         
         # 1. LEVEL GATE (BRAMA SKARBCA)
@@ -1787,6 +1802,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

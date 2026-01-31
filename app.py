@@ -409,9 +409,10 @@ def get_polish_time():
     return utc_now.astimezone(pytz.timezone('Europe/Warsaw'))
 
 def get_daily_quote():
-    today_seed = datetime.now().strftime("%Y%m%d")
-    random.seed(int(today_seed))
-    return random.choice(HERO_QUOTES)
+    now = get_polish_time()
+    today_seed = now.strftime("%Y%m%d")
+    rng = random.Random(int(today_seed))
+    return rng.choice(HERO_QUOTES)
 
 # --- NOWE FUNKCJE OBSŁUGI DANYCH (GOOGLE SHEETS) ---
 @st.cache_data(ttl=60) # Odświeżaj dane co minutę
@@ -1765,6 +1766,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

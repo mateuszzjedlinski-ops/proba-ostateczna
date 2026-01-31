@@ -95,22 +95,41 @@ def get_daily_bounty():
 
 def check_bounty_completion(bounty_title, df):
     today_str = datetime.now().strftime("%Y-%m-%d")
+    
     if df.empty: return False
+    
+    # 1. Pobieramy WSZYSTKIE dzisiejsze wpisy (Niezależnie od Trybu Impreza!)
     try:
         today_df = df[df['Data'] == today_str].copy()
     except KeyError: return False
     
     if today_df.empty: return False
     
-    # Konwersja typów dla bezpieczeństwa
+    # 2. Normalizacja danych (kluczowe dla zaliczania zadań w obu trybach)
     today_df['Punkty'] = pd.to_numeric(today_df['Punkty'], errors='coerce').fillna(0)
     today_df['Notatka'] = today_df['Notatka'].astype(str)
-    today_df['Stan'] = today_df['Stan'].astype(str)
+    today_df['Stan'] = today_df['Stan'].astype(str).str.strip() # Usuwamy spacje
+    # Ujednolicamy kolumnę Tryb do wartości stringowych, żeby wyłapać "ON", "True", "1"
+    today_df['Tryb Imprezowy'] = today_df['Tryb Imprezowy'].astype(str)
 
-    if bounty_title == "Dzień Rozgrzewki": return today_df['Punkty'].sum() >= 1
-    elif bounty_title == "Czysta Karta": return (not today_df['Stan'].str.contains("IGLISKO").any()) and (len(today_df) > 0)
-    elif bounty_title == "Dzień Abstynenta": return (not today_df['Tryb Imprezowy'].isin(['ON', 'True', True, '1']).any()) and (len(today_df) > 0)
+    # --- LOGIKA WERYFIKACJI ---
+
+    if bounty_title == "Dzień Rozgrzewki":
+        # Liczy się suma punktów (Impreza daje więcej pkt, więc też pomaga)
+        return today_df['Punkty'].sum() >= 1
+
+    elif bounty_title == "Czysta Karta":
+        # Sprawdzamy czy wystąpiło IGLISKO (Działa w obu trybach, bo nazwa ta sama)
+        return (not today_df['Stan'].str.contains("IGLISKO").any()) and (len(today_df) > 0)
+
+    elif bounty_title == "Dzień Abstynenta":
+        # TO JEDYNE ZADANIE, KTÓRE ZABRANIA TRYBU IMPREZA
+        party_used = today_df['Tryb Imprezowy'].isin(['ON', 'True', '1']).any()
+        return (not party_used) and (len(today_df) > 0)
+
     elif bounty_title == "Snajper Wyborowy":
+        # Liczymy serię "IGLICA". Ponieważ w Trybie Impreza przycisk też nazywa się "IGLICA",
+        # to zadanie zaliczy się również na imprezie!
         stans = today_df.sort_values('Godzina')['Stan'].tolist()
         streak = 0; max_streak = 0
         for s in stans:
@@ -118,40 +137,94 @@ def check_bounty_completion(bounty_title, df):
             else: streak = 0
             max_streak = max(max_streak, streak)
         return max_streak >= 3
-    elif bounty_title == "Nocna Zmiana": return today_df['Godzina'].max() >= "22:00"
-    elif bounty_title == "Poranny Ptaszek": return today_df['Godzina'].min() < "10:00"
-    elif bounty_title == "Hazardzista": return today_df['Notatka'].str.contains("KOŁO:", regex=False).any()
-    elif bounty_title == "Metoda Ant-Mana": return len(today_df[today_df['Stan'] == "IGŁA"]) == 2
-    elif bounty_title == "Leniwa Niedziela": return 1 <= len(today_df) <= 2
-    elif bounty_title == "Kapitan Chaos": return ((today_df['Tryb Imprezowy'].isin(['ON', 'True'])) & (today_df['Punkty'] > 0)).any()
+
+    elif bounty_title == "Nocna Zmiana":
+        return today_df['Godzina'].max() >= "22:00"
+
+    elif bounty_title == "Poranny Ptaszek":
+        return today_df['Godzina'].min() < "10:00"
+
+    elif bounty_title == "Hazardzista":
+        return today_df['Notatka'].str.contains("KOŁO:", regex=False).any()
+
+    elif bounty_title == "Metoda Ant-Mana":
+        # Liczy wystąpienia "IGŁA". Działa w obu trybach.
+        return len(today_df[today_df['Stan'] == "IGŁA"]) == 2
+
+    elif bounty_title == "Leniwa Niedziela":
+        return 1 <= len(today_df) <= 2
+
+    elif bounty_title == "Kapitan Chaos":
+        # To zadanie WYMAGA trybu impreza i sukcesu (pkt > 0)
+        return ((today_df['Tryb Imprezowy'].isin(['ON', 'True', '1'])) & (today_df['Punkty'] > 0)).any()
+
     elif bounty_title == "Kronikarz":
         user_notes = today_df[~today_df['Notatka'].str.contains("SHOP_BUY|BOUNTY", na=False)]
         return user_notes['Notatka'].apply(lambda x: len(x.split()) > 3).any()
-    elif bounty_title == "Równowaga Mocy": total = today_df['Punkty'].sum(); return (total != 0) and (total % 2 == 0)
-    elif bounty_title == "Szczęśliwa Trzynastka": return today_df['Godzina'].apply(lambda x: x.startswith("13:")).any()
-    elif bounty_title == "Stary Wyjadacz": return today_df['Punkty'].sum() >= 8
-    elif bounty_title == "Czarna Wdowa": return (today_df['Notatka'] == "").any()
-    elif bounty_title == "Sokołe Oko (Hawkeye)": return today_df.sort_values('Godzina').iloc[0]['Stan'] == "IGLICA"
-    elif bounty_title == "Gorączka Sobotniej Nocy": return today_df['Tryb Imprezowy'].isin(['ON', 'True']).any()
-    elif bounty_title == "Doktor Strange": return today_df['Notatka'].str.contains("Czas|Dormammu", case=False).any()
-    elif bounty_title == "Maratończyk": return len(today_df) >= 3
-    elif bounty_title == "Iron Man": return today_df['Punkty'].sum() >= 10
-    elif bounty_title == "Hulk Smash!": return ("IGLICA" in today_df['Stan'].values) and ("IGŁA" in today_df['Stan'].values)
-    elif bounty_title == "Jestem Groot": return today_df['Notatka'].str.strip().eq("I am Groot").any()
+
+    elif bounty_title == "Równowaga Mocy":
+        total = today_df['Punkty'].sum()
+        return (total != 0) and (total % 2 == 0)
+
+    elif bounty_title == "Szczęśliwa Trzynastka":
+        return today_df['Godzina'].apply(lambda x: x.startswith("13:")).any()
+
+    elif bounty_title == "Stary Wyjadacz":
+        # Impreza pomaga, bo daje więcej punktów
+        return today_df['Punkty'].sum() >= 8
+
+    elif bounty_title == "Czarna Wdowa":
+        return (today_df['Notatka'] == "").any()
+
+    elif bounty_title == "Sokołe Oko (Hawkeye)":
+        return today_df.sort_values('Godzina').iloc[0]['Stan'] == "IGLICA"
+
+    elif bounty_title == "Gorączka Sobotniej Nocy":
+        return today_df['Tryb Imprezowy'].isin(['ON', 'True', '1']).any()
+
+    elif bounty_title == "Doktor Strange":
+        return today_df['Notatka'].str.contains("Czas|Dormammu", case=False).any()
+
+    elif bounty_title == "Maratończyk":
+        return len(today_df) >= 3
+
+    elif bounty_title == "Iron Man":
+        return today_df['Punkty'].sum() >= 10
+
+    elif bounty_title == "Hulk Smash!":
+        stans = today_df['Stan'].values
+        return ("IGLICA" in stans) and ("IGŁA" in stans)
+
+    elif bounty_title == "Jestem Groot":
+        return today_df['Notatka'].str.strip().eq("I am Groot").any()
+
     elif bounty_title == "Flash":
         if len(today_df) < 2: return False
         try:
             times = pd.to_datetime(today_str + " " + today_df['Godzina']).sort_values()
             return (times.diff().dt.total_seconds() / 60 < 60).any()
         except: return False
+
     elif bounty_title == "Star-Lord":
         user_notes = today_df[~today_df['Notatka'].str.contains("SHOP_BUY|BOUNTY", na=False)]
         return len(user_notes) > 0 and (user_notes['Notatka'] != "").any()
-    elif bounty_title == "Zimowy Żołnierz": return today_df['Punkty'].sum() > 0
-    elif bounty_title == "Spider-Man": return (not today_df['Stan'].isin(["IGLUTEK", "IGLISKO"]).any()) and (len(today_df) > 0)
-    elif bounty_title == "Potężny Thor": return ((today_df['Stan'] == "IGLICA") & (today_df['Tryb Imprezowy'].isin(['ON', 'True']))).any()
-    # Zadania "Miękkie" (trudne do weryfikacji automatcznej, wymagają po prostu aktywności)
-    elif bounty_title in ["Nick Fury", "Bóg Kłamstw (Loki)", "Pstryknięcie Thanosa"]: return len(today_df) > 0
+
+    elif bounty_title == "Zimowy Żołnierz":
+        # Wystarczy zdobyć jakiekolwiek punkty (Tryb Impreza też daje punkty)
+        return today_df['Punkty'].sum() > 0
+
+    elif bounty_title == "Spider-Man":
+        # Uniknij minusów. W Trybie Impreza IGLISKO to też IGLISKO (tylko boleśniejsze),
+        # więc warunek działa poprawnie (blokuje zaliczenie).
+        return (not today_df['Stan'].isin(["IGLUTEK", "IGLISKO"]).any()) and (len(today_df) > 0)
+
+    elif bounty_title == "Potężny Thor":
+        # WYMAGA Trybu Impreza
+        return ((today_df['Stan'] == "IGLICA") & (today_df['Tryb Imprezowy'].isin(['ON', 'True', '1']))).any()
+
+    # Zadania "Miękkie" (trudne do weryfikacji automatcznej)
+    elif bounty_title in ["Nick Fury", "Bóg Kłamstw (Loki)", "Pstryknięcie Thanosa"]:
+        return len(today_df) > 0
     
     return False
 
@@ -1570,6 +1643,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

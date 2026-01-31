@@ -8,6 +8,13 @@ import random
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# --- KONFIGURACJA STRONY ---
+st.set_page_config(
+    page_title="Dziennik Iglasty",
+    page_icon="app_icon.png",
+    layout="centered"
+)
+
 # --- 🛍️ SKLEP: CZARNY RYNEK ARTEFAKTÓW (CENY -20%, ROTACJA OD LUTEGO) ---
 SHOP_INVENTORY = {
     # 🛒 ROTACJA 1: STRAŻNICY I NAJEMNICY (Luty-Marzec / Sierpień-Wrzesień)
@@ -42,12 +49,21 @@ SHOP_INVENTORY = {
     ]
 }
 
-# --- KONFIGURACJA STRONY ---
-st.set_page_config(
-    page_title="Dziennik Iglasty",
-    page_icon="app_icon.png",
-    layout="centered"
-)
+# --- 🧠 PERKI (PASYWNE UMIEJĘTNOŚCI) ---
+PERKS_DB = {
+    "adamantium": {"name": "🦴 Wątroba z Adamantium", "cost": 1500, "desc": "IGLISKO zabiera 10 HP zamiast 20 HP.", "hero": "Wolverine"},
+    "investor":   {"name": "💰 Inwestor Starka",      "cost": 2000, "desc": "Każde pozytywne kliknięcie daje +1 Kredyt ekstra.", "hero": "Tony Stark"},
+    "discount":   {"name": "🤝 Targowanie się",       "cost": 2500, "desc": "Ceny w Sklepie (Artefakty) niższe o 20%.", "hero": "Collector"},
+    "lucky":      {"name": "🍀 Szczęściarz",          "cost": 3000, "desc": "Szansa na Koło Fortuny wzrasta z 5% do 10%.", "hero": "Domino"}
+}
+
+# Funkcja pomocnicza do sprawdzania czy mamy perka
+def has_perk(df, perk_key):
+    if df.empty or 'Notatka' not in df.columns: return False
+    # Szukamy w bazie wpisu: PERK_BUY | nazwa_perka
+    perk_name = PERKS_DB[perk_key]['name']
+    search_str = f"PERK_BUY | {perk_name}"
+    return df['Notatka'].astype(str).str.contains(search_str, regex=False).any()
 
 # --- 📜 ZLECENIA DNIA (DAILY BOUNTIES) - LISTA NA CAŁY MIESIĄC ---
 DAILY_BOUNTIES = [
@@ -530,7 +546,8 @@ def calculate_currency(df, current_score, owned_stones):
                 
         # B. Zarobki za kliki (Tylko jeśli to NIE był zakup)
         else:
-            # Twoja logika stawek:
+            has_investor = df['Notatka'].str.contains("Inwestor Starka", na=False).any()
+            bonus_cash = 1 if has_investor else 0 
             if points >= 5: 
                 balance += 10  # Impreza
             elif points > 0: 
@@ -582,11 +599,15 @@ def calculate_hp(df):
         # Aktualizujemy symulowany wynik w danym momencie historii
         simulated_score += points
         
-        # === ZASADA: OBRAŻENIA WCHODZĄ TYLKO POWYŻEJ 60 PKT ===
+# === ZASADA: OBRAŻENIA WCHODZĄ TYLKO POWYŻEJ 60 PKT ===
         if simulated_score >= 60:
+            has_adamantium = df['Notatka'].str.contains("Wątroba z Adamantium", na=False).any()
+            
+            damage_modifier = 10 if has_adamantium else 20 # Perk zmniejsza obrażenia do 10
+
             # 1. Obrażenia
             if status == "IGLISKO":
-                current_hp -= 20 
+                current_hp -= damage_modifier # <-- ZMIANA
             elif status == "IGLUTEK":
                 current_hp -= 10
         
@@ -1256,8 +1277,43 @@ def main():
         st.info(f"📦 Obecna dostawa: **{rotation_names[shop_rotation_index]}**")
         st.caption("Oferta zmienia się co 2 miesiące.")
 
-        # 3. Lista Artefaktów
+        # --- NOWA SEKCJA: SZKOLENIA S.H.I.E.L.D. (PERKI) ---
+        with st.expander("🧠 Szkolenia S.H.I.E.L.D. (Pasywne Umiejętności)", expanded=True):
+            st.caption("Drogie, stałe ulepszenia konta. Działają zawsze.")
+            
+            for key, perk in PERKS_DB.items():
+                pc1, pc2, pc3 = st.columns([1, 3, 2])
+                with pc1:
+                    st.markdown("## 🧬")
+                with pc2:
+                    st.write(f"**{perk['name']}**")
+                    st.caption(perk['desc'])
+                with pc3:
+                    is_owned = has_perk(df, key)
+                    if is_owned:
+                         st.button("✅ Aktywne", key=f"perk_owned_{key}", disabled=True)
+                    else:
+                        if st.button(f"Kup ({perk['cost']} 🪙)", key=f"btn_perk_{key}"):
+                            # Logika kupna perka
+                            get_data_from_sheets.clear()
+                            fresh_df = get_data_from_sheets()
+                            fresh_wallet = calculate_currency(fresh_df, current_score, owned_stones)
+                            
+                            if fresh_wallet < perk['cost']:
+                                st.error("❌ Za mało środków!")
+                            else:
+                                note_content = f"PERK_BUY | {perk['name']} | -{perk['cost']}"
+                                save_to_sheets("PERK", 0, "Sklep", False, note_content)
+                                st.balloons()
+                                st.success(f"🧬 Odblokowano: {perk['name']}")
+                                time.sleep(2)
+                                st.rerun()
+            st.markdown("---")
+
+        has_discount = has_perk(df, "discount")
         for item in current_offer:
+            base_price = item['cost']
+            final_price = int(base_price * 0.8) if has_discount else base_price
             c1, c2, c3 = st.columns([1, 3, 2])
             with c1:
                 st.markdown(f"<div style='font-size: 50px; text-align: center;'>{item['icon']}</div>", unsafe_allow_html=True)
@@ -1266,7 +1322,10 @@ def main():
                 st.caption(item['desc'])
                 st.markdown(f"**Bohater:** {item['hero']}")
             with c3:
-                price = item['cost']
+                if has_discount:
+                    st.markdown(f"~~{base_price}~~ **{final_price} 🪙**")
+                else:
+                    st.write(f"**{final_price} 🪙**")
                 
                 # ZABEZPIECZENIE: CZY POSIADA
                 already_owned = False
@@ -1277,7 +1336,7 @@ def main():
                 if already_owned:
                     st.button(f"✅ Już posiadasz", key=f"btn_owned_{item['name']}", disabled=True)
                 else:
-                    if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
+                   if st.button(f"Kup ({final_price} 🪙)", key=f"btn_{item['name']}"):
                         with st.spinner("Weryfikacja transakcji..."):
                             get_data_from_sheets.clear()
                             fresh_df = get_data_from_sheets()
@@ -1484,7 +1543,9 @@ def main():
         # Losuje modyfikator: -2 (Pech), 0 (Bez zmian), +2 (Fart)
         chaos_change = 0
         
-        if random.random() < 0.05: # 5% szans na uruchomienie koła
+        if random.random() < chance_threshold:
+        has_lucky_perk = has_perk(df, "lucky")
+        chance_threshold = 0.10 if has_lucky_perk else 0.05
             
             # Losujemy jedną z 3 opcji
             wheel_options = [-2, 0, 2]
@@ -1643,6 +1704,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

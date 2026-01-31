@@ -549,11 +549,11 @@ def calculate_currency(df, current_score, owned_stones):
             has_investor = df['Notatka'].str.contains("Inwestor Starka", na=False).any()
             bonus_cash = 1 if has_investor else 0 
             if points >= 5: 
-                balance += 10  # Impreza
+                balance += (10 + bonus_cash) # <--- TU DODAJEMY BONUS
             elif points > 0: 
-                balance += 5   # Standard
+                balance += (5 + bonus_cash)  # <--- TU TEŻ
             elif points < 0: 
-                balance += 1   # Pocieszenie
+                balance += 1  # Pocieszenie
 
     # --- 4. BONUSY ZA IMPREZY (Twoja sekcja z wierszy 339-347) ---
     try:
@@ -1538,18 +1538,21 @@ def main():
             else:
                 st.error("💀 Auć.")
     
-    # --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
-        # Działa na każdą opcję. Szansa 5%.
-        # Losuje modyfikator: -2 (Pech), 0 (Bez zmian), +2 (Fart)
+# --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
         chaos_change = 0
         
-        if random.random() < chance_threshold:
+        # 1. NAJPIERW OBLICZAMY SZANSĘ (PRZED IF-em!)
         has_lucky_perk = has_perk(df, "lucky")
-        chance_threshold = 0.10 if has_lucky_perk else 0.05
+        chance_threshold = 0.10 if has_lucky_perk else 0.05 # 10% lub 5%
+        
+        # 2. DOPIERO TERAZ SPRAWDZAMY WARUNEK
+        if random.random() < chance_threshold: 
             
             # Losujemy jedną z 3 opcji
             wheel_options = [-2, 0, 2]
             chaos_change = random.choice(wheel_options)
+            
+            # ... (reszta kodu: dźwięki, toast, aktualizacja punktów) ...
             
             # Aktualizujemy punkty
             points += chaos_change
@@ -1704,6 +1707,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

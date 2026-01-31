@@ -919,13 +919,13 @@ def main():
     level_img, level_desc = get_smart_image_filename(cycle, owned_stones, cycle_progress)
     daily_quote = get_daily_quote()
 
-    # ==========================================
+# ==========================================
 # 🏁 PROTOKÓŁ KOŃCA GRY: NIESKOŃCZONOŚĆ 🏁
 # ==========================================
-# Sprawdzamy, czy Paweł zdobył wszystkie 6 kamieni.
-# Jeśli tak, przerywamy normalne działanie aplikacji i wyświetlamy ekran zwycięstwa.
 
+    # WARUNEK: To wszystko ma się dziać TYLKO jeśli mamy 6 lub więcej kamieni
     if owned_stones >= 6:
+        
         # 1. Muzyka Finałowa (Epicki motyw)
         if os.path.exists("endgame_theme.mp3"):
             # Autoplay + Loop, żeby grało w kółko podczas napawania się wygraną
@@ -939,7 +939,7 @@ def main():
         # 3. Epicki Tytuł
         st.markdown("""
             <h1 style='text-align: center; color: gold; font-size: 60px; text-shadow: 2px 2px 4px #000000;'>
-                GRATULACJE!<br>WSZECHŚWIAT JEST TWOJEJ DŁONI!
+                GRATULACJE!<br>WSZECHŚWIAT JEST W TWOJEJ DŁONI!
             </h1>
         """, unsafe_allow_html=True)
     
@@ -949,7 +949,7 @@ def main():
             st.image(
                 victory_img,
                 caption="„Ja... jestem... Jeżem.” – Paweł, Władca Nieskończoności.",
-                use_container_width=True # Rozciąga na pełną szerokość kontenera
+                use_container_width=True 
             )
         else:
             st.warning("⚠️ Brakuje pliku: hedgehog_victory_team.png. Ale i tak wygrałeś!")
@@ -964,41 +964,44 @@ def main():
         st.markdown("---")
         st.markdown("### Co teraz, Władco?")
     
-    # 6. Przycisk Resetu (Nowa Gra / Prestige Mode)
+        # 6. Przycisk Resetu (Nowa Gra / Prestige Mode)
         # Poprawiona nazwa: PSTRYKNIJ
-    if st.button("🔄 PSTRYKNIJ PALCAMI (Zresetuj Wszechświat)", type="primary"):
-        if os.path.exists(SNAP_SOUND_FILE):
-            st.audio(SNAP_SOUND_FILE, format="audio/mp3", autoplay=True)
-        
-        # --- FIX: CZYSZCZENIE ARKUSZA ---
-        try:
-            sheet = client.open(GOOGLE_SHEET_NAME).sheet1
-            # Zostawiamy nagłówki (pierwszy wiersz), kasujemy resztę
-            # Uwaga: resize(1) to szybka metoda na ucięcie arkusza do 1 wiersza
-            sheet.resize(rows=1) 
-            sheet.resize(rows=1000) # Przywracamy rozmiar, ale puste wiersze
-            get_data_from_sheets.clear() # Czyścimy cache w aplikacji
-        except Exception as e:
-            st.error(f"Błąd resetowania bazy: {e}")
-            st.stop()
-        # -------------------------------
-
-        st.toast("🫰 Pstryk! Równowaga przywrócona...")
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        
-        time.sleep(3.0)
-        st.rerun()
+        # WAŻNE: Wcięcie w prawo, żeby był widoczny TYLKO po wygranej
+        if st.button("🔄 PSTRYKNIJ PALCAMI (Zresetuj Wszechświat i Zacznij Od Nowa)", type="primary"):
+            
+            # A. Fizyczne czyszczenie bazy (To co dodaliśmy wcześniej)
+            try:
+                sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+                # Zostawiamy nagłówki (pierwszy wiersz), kasujemy resztę
+                sheet.resize(rows=1) 
+                sheet.resize(rows=1000) # Przywracamy puste wiersze
+                get_data_from_sheets.clear() # Czyścimy cache w aplikacji
+            except Exception as e:
+                st.error(f"Błąd resetowania bazy: {e}")
+                st.stop()
+            
+            # B. Dźwięk Pstryknięcia (The Snap)
+            if os.path.exists(SNAP_SOUND_FILE):
+                st.audio(SNAP_SOUND_FILE, format="audio/mp3", autoplay=True)
+            
+            # C. Komunikat i czyszczenie sesji
+            st.toast("🫰 Pstryk! Równowaga przywrócona...")
+            
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            
+            # D. Czekamy chwilę, żeby dźwięk wybrzmiał (3 sekundy)
+            time.sleep(3.0)
+            st.rerun()
     
         # 🛑 KLUCZOWE: Zatrzymujemy resztę aplikacji! 🛑
         # Dzięki temu nie wyświetli się reszta gry (przyciski, sidebar itp.)
-        
         st.stop()
     
-    # ==========================================
-    # KONIEC PROTOKOŁU KOŃCA GRY
-    # (Dalej leci normalny kod aplikacji...)
-    # ==========================================
+# ==========================================
+# KONIEC PROTOKOŁU KOŃCA GRY
+# (Dalej leci normalny kod aplikacji...)
+# ==========================================
     
         with st.sidebar:
             if cycle == 0:
@@ -1762,6 +1765,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

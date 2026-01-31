@@ -924,6 +924,27 @@ def main():
 # 🏁 PROTOKÓŁ KOŃCA GRY: NIESKOŃCZONOŚĆ 🏁
 # ==========================================
 
+# --- 🎬 INTRO: PROTOKÓŁ ZERO (TYLKO DLA NOWEGO GRACZA) ---
+    if df.empty:
+        st.markdown("""
+        <div style="background-color: #0E1117; border: 1px solid #00FF00; padding: 20px; border-radius: 5px; font-family: 'Courier New', monospace; color: #00FF00;">
+            <p><strong>> SYSTEM BOOT_SEQUENCE_V30...</strong> OK</p>
+            <p><strong>> CONNECTING TO S.H.I.E.L.D. SERVER...</strong> FAILED ❌</p>
+            <p><strong>> SCANNING BIOMETRICS...</strong></p>
+            <p style="color: yellow;">> WARNING: UNIDENTIFIED LIFE FORM DETECTED.</p>
+            <br>
+            <p>Tożsamość: <strong>NIEZNANA</strong></p>
+            <p>Status: <strong>CYWIL</strong></p>
+            <p>Poziom Mocy: <strong>0</strong></p>
+            <br>
+            <p>>> Wdrażam protokół awaryjny "IGŁA".</p>
+            <p>>> Cel: Wykonaj pierwszą akcję, aby utworzyć kartotekę.</p>
+            <p><em>"Każda legenda zaczyna się od pierwszego kliknięcia. Albo od błędu systemu. Zobaczymy."</em></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+
     # WARUNEK: To wszystko ma się dziać TYLKO jeśli mamy 6 lub więcej kamieni
     if owned_stones >= 6:
         
@@ -1766,6 +1787,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

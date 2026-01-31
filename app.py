@@ -1218,12 +1218,12 @@ def main():
         if current_score < 60:
             c1, c2 = st.columns(2)
             c1.metric("Całkowity EXP", f"{current_score}")
-            c2.metric("Seria Dni", f"{streak_count} 🔥")
+            c2.metric("Seria", f"{streak_count} 🔥")
         else:
             c1, c2, c3 = st.columns(3)
             c1.metric("Całkowity EXP", f"{current_score}")
             c2.metric("Kamienie", f"{owned_stones}/6")
-            c3.metric("Seria Dni", f"{streak_count} 🔥")
+            c3.metric("Seria", f"{streak_count} 🔥")
         
         st.markdown("---")
         
@@ -1643,6 +1643,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

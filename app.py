@@ -1398,7 +1398,7 @@ def main():
                     st.session_state.party_mode,
                     df,
                     streak_count,
-                    streak_type
+                    streak_type,
                     st.session_state.last_comment
                 )
                 
@@ -1443,6 +1443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

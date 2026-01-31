@@ -15,46 +15,46 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 🛍️ SKLEP: CZARNY RYNEK ARTEFAKTÓW (CENY -20%, ROTACJA OD LUTEGO) ---
+# --- 🛍️ SKLEP: CZARNY RYNEK ARTEFAKTÓW (CENY SKORYGOWANE DO EKONOMII) ---
 SHOP_INVENTORY = {
     # 🛒 ROTACJA 1: STRAŻNICY I NAJEMNICY (Luty-Marzec / Sierpień-Wrzesień)
     0: [
-        {"name": "🎧 Walkman Star-Lorda", "desc": "Oryginalny Sony TPS-L2. Przejmujesz kontrolę nad muzyką w aucie/domu na cały dzień.", "cost": 280, "icon": "🎧", "hero": "Star-Lord", "reaction": "🕺 STAR-LORD: Ej! To moje! Dobra... pożyczę ci. Puszczaj 'Hooked on a Feeling'!"},
-        {"name": "🔫 Złote Gnaty Deadpoola", "desc": "Dwie repliki Desert Eagle. Symbolizują 'Dziką Kartę' - wygranie dowolnej dyskusji bez argumentów.", "cost": 480, "icon": "🔫", "hero": "Deadpool", "reaction": "🌮 DEADPOOL: Ooo tak! Widzisz jak błyszczą? Chcę 10% z każdego fraga. I chimichangę."},
-        {"name": "🔨 Mjolnir (Replika)", "desc": "Jeśli go kupisz, jesteś Godzien. Zwalnia z jednego ciężkiego obowiązku domowego.", "cost": 640, "icon": "🔨", "hero": "Thor", "reaction": "🍺 THOR: HA! Wiedziałem, że masz iskrę! Tylko uważaj, jest trochę... naelektryzowany."},
-        {"name": "🛡️ Przepustka S.H.I.E.L.D.", "desc": "Dokument od Nicka Fury'ego. Gwarantuje nietykalność i święty spokój przez ustalony czas.", "cost": 960, "icon": "🏖️", "hero": "Nick Fury", "reaction": "👁️ NICK FURY: Dobra robota, żołnierzu. Znikaj mi z oczu. Masz wolne."},
-        {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 1200, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"},
+        {"name": "🎧 Walkman Star-Lorda", "desc": "Oryginalny Sony TPS-L2. Przejmujesz kontrolę nad muzyką w aucie/domu na cały dzień.", "cost": 250, "icon": "🎧", "hero": "Star-Lord", "reaction": "🕺 STAR-LORD: Ej! To moje! Dobra... pożyczę ci. Puszczaj 'Hooked on a Feeling'!"},
+        {"name": "🔫 Złote Gnaty Deadpoola", "desc": "Dwie repliki Desert Eagle. Symbolizują 'Dziką Kartę' - wygranie dowolnej dyskusji bez argumentów.", "cost": 450, "icon": "🔫", "hero": "Deadpool", "reaction": "🌮 DEADPOOL: Ooo tak! Widzisz jak błyszczą? Chcę 10% z każdego fraga. I chimichangę."},
+        {"name": "🔨 Mjolnir (Replika)", "desc": "Jeśli go kupisz, jesteś Godzien. Zwalnia z jednego ciężkiego obowiązku domowego.", "cost": 600, "icon": "🔨", "hero": "Thor", "reaction": "🍺 THOR: HA! Wiedziałem, że masz iskrę! Tylko uważaj, jest trochę... naelektryzowany."},
+        {"name": "🛡️ Przepustka S.H.I.E.L.D.", "desc": "Dokument od Nicka Fury'ego. Gwarantuje nietykalność i święty spokój przez ustalony czas.", "cost": 750, "icon": "🏖️", "hero": "Nick Fury", "reaction": "👁️ NICK FURY: Dobra robota, żołnierzu. Znikaj mi z oczu. Masz wolne."},
+        {"name": "🦾 Ręka Rocketa", "desc": "Proteza ukradziona dla żartu. Joker: Wymień na dowolną inną, nietypową przysługę.", "cost": 900, "icon": "🦾", "hero": "Rocket", "reaction": "🦝 ROCKET: Czekaj... ile za to dałeś?! Hahaha! Frajer! Ale kredyty biorę!"},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 100, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ],
     # 🛒 ROTACJA 2: AVENGERS ASSEMBLE (Kwiecień-Maj / Październik-Listopad)
     1: [
-        {"name": "🍩 Pudełko Pączków Starka", "desc": "Wymień na: Zamawiamy jedzenie z Twojej ulubionej knajpy (ja stawiam).", "cost": 320, "icon": "🍩", "hero": "Tony Stark", "reaction": "🕶️ TONY STARK: Zostaw mi chociaż jednego z lukrem! Dobra, masz."},
-        {"name": "🩳 Fioletowe Szorty Hulka", "desc": "Prawo do 'Niekontrolowanego Wybuchu' - możesz marudzić przez 10 min, a ja tylko przytakuję.", "cost": 440, "icon": "🩳", "hero": "Bruce Banner", "reaction": "🧪 BANNER: Są trochę rozciągnięte... ale działają. Tylko nie zzielenej mi tu."},
-        {"name": "🏹 Łuk Hawkeye'a", "desc": "Daje Ci 'Celny Strzał' - Ty wybierasz film na wieczór i nie ma dyskusji.", "cost": 560, "icon": "🏹", "hero": "Hawkeye", "reaction": "🎯 HAWKEYE: Trafiłeś w dziesiątkę. Pamiętaj - masz tylko jedną strzałę tego typu."},
-        {"name": "🇺🇸 Tarcza Kapitana", "desc": "Użyj, aby zrobić 'UNIK' od jednego nudnego spotkania lub wyjścia.", "cost": 720, "icon": "🛡️", "hero": "Steve Rogers", "reaction": "🫡 CAPTAIN AMERICA: Odpocznij, żołnierzu. Zasłużyłeś na przepustkę."},
-        {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 880, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."},
+        {"name": "🍩 Pudełko Pączków Starka", "desc": "Wymień na: Zamawiamy jedzenie z Twojej ulubionej knajpy (ja stawiam).", "cost": 300, "icon": "🍩", "hero": "Tony Stark", "reaction": "🕶️ TONY STARK: Zostaw mi chociaż jednego z lukrem! Dobra, masz."},
+        {"name": "🩳 Fioletowe Szorty Hulka", "desc": "Prawo do 'Niekontrolowanego Wybuchu' - możesz marudzić przez 10 min, a ja tylko przytakuję.", "cost": 400, "icon": "🩳", "hero": "Bruce Banner", "reaction": "🧪 BANNER: Są trochę rozciągnięte... ale działają. Tylko nie zzielenej mi tu."},
+        {"name": "🏹 Łuk Hawkeye'a", "desc": "Daje Ci 'Celny Strzał' - Ty wybierasz film na wieczór i nie ma dyskusji.", "cost": 500, "icon": "🏹", "hero": "Hawkeye", "reaction": "🎯 HAWKEYE: Trafiłeś w dziesiątkę. Pamiętaj - masz tylko jedną strzałę tego typu."},
+        {"name": "🇺🇸 Tarcza Kapitana", "desc": "Użyj, aby zrobić 'UNIK' od jednego nudnego spotkania lub wyjścia.", "cost": 650, "icon": "🛡️", "hero": "Steve Rogers", "reaction": "🫡 CAPTAIN AMERICA: Odpocznij, żołnierzu. Zasłużyłeś na przepustkę."},
+        {"name": "🕷️ Wyrzutnie Sieci Spider-Mana", "desc": "Wyręczam Cię w jednej upierdliwej czynności (śmieci/pranie).", "cost": 800, "icon": "🕸️", "hero": "Spider-Man", "reaction": "🍕 SPIDER-MAN: Pan Stark pozwolił Ci to wziąć?! Super! Tylko uważaj na dywany."},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 100, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ],
     # 🛒 ROTACJA 3: MAGIA I KOSMOS (Czerwiec-Lipiec / Grudzień-Styczeń)
     2: [
-        {"name": "🌱 Doniczka z Grootem", "desc": "Prawo do 'Wegetacji' - leżysz na kanapie i nikt nic od Ciebie nie chce przez wieczór.", "cost": 280, "icon": "🪴", "hero": "Groot", "reaction": "🪵 GROOT: I am Groot. (Tłumaczenie: Powiedział, że masz fajne buty)."},
-        {"name": "👁️ Oko Agamotto", "desc": "Kamień Czasu. 'Cofnięcie Czasu' - anulowanie jednego głupiego tekstu bez konsekwencji.", "cost": 520, "icon": "🧿", "hero": "Dr. Strange", "reaction": "🧙‍♂️ DR. STRANGE: Używaj rozważnie. Nie psuj kontinuum dla pizzy... chociaż..."},
-        {"name": "🧪 Cząsteczki Pyma", "desc": "'Skurczenie problemu' - skracamy o połowę czas trwania wizyty gości lub zakupów.", "cost": 680, "icon": "🐜", "hero": "Ant-Man", "reaction": "🔬 ANT-MAN: Gdzie to położyłem?! A, masz je. Nie wciśnij niebieskiego guzika!"},
-        {"name": "😼 Pazury Czarnej Pantery", "desc": "Królewski luksus. Wymień na: 15-minutowy masaż karku/stóp.", "cost": 800, "icon": "🐾", "hero": "Black Panther", "reaction": "👑 T'CHALLA: Nie zamarzam. I Ty też nie będziesz. Przyjmij to jako dar od Wakandy."},
-        {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 1120, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"},
+        {"name": "🌱 Doniczka z Grootem", "desc": "Prawo do 'Wegetacji' - leżysz na kanapie i nikt nic od Ciebie nie chce przez wieczór.", "cost": 250, "icon": "🪴", "hero": "Groot", "reaction": "🪵 GROOT: I am Groot. (Tłumaczenie: Powiedział, że masz fajne buty)."},
+        {"name": "👁️ Oko Agamotto", "desc": "Kamień Czasu. 'Cofnięcie Czasu' - anulowanie jednego głupiego tekstu bez konsekwencji.", "cost": 500, "icon": "🧿", "hero": "Dr. Strange", "reaction": "🧙‍♂️ DR. STRANGE: Używaj rozważnie. Nie psuj kontinuum dla pizzy... chociaż..."},
+        {"name": "🧪 Cząsteczki Pyma", "desc": "'Skurczenie problemu' - skracamy o połowę czas trwania wizyty gości lub zakupów.", "cost": 600, "icon": "🐜", "hero": "Ant-Man", "reaction": "🔬 ANT-MAN: Gdzie to położyłem?! A, masz je. Nie wciśnij niebieskiego guzika!"},
+        {"name": "😼 Pazury Czarnej Pantery", "desc": "Królewski luksus. Wymień na: 15-minutowy masaż karku/stóp.", "cost": 750, "icon": "🐾", "hero": "Black Panther", "reaction": "👑 T'CHALLA: Nie zamarzam. I Ty też nie będziesz. Przyjmij to jako dar od Wakandy."},
+        {"name": "😈 Hełm Lokiego", "desc": "'Glorious Purpose' - Ty wymyślasz aktywność na weekend, nieważne jak dziwna.", "cost": 900, "icon": "🔱", "hero": "Loki", "reaction": "🐍 LOKI: Nareszcie ktoś z gustem! Idź i siej chaos, śmiertelniku!"},
         # ... inne przedmioty ...
-        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 150, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
+        {"name": "🏥 Apteczka S.H.I.E.L.D.", "desc": "Zastrzyk nanobotów. Przywraca +80 HP. Wymagana w stanie krytycznym.", "cost": 100, "icon": "❤️", "hero": "Medic", "reaction": "👩‍⚕️ MEDYK: Parametry w normie. Wracaj do walki, Agent."}
     ]
 }
 
-# --- 🧠 PERKI (PASYWNE UMIEJĘTNOŚCI) ---
+# --- 🧠 PERKI (PASYWNE UMIEJĘTNOŚCI - CENY OBNIŻONE) ---
 PERKS_DB = {
-    "adamantium": {"name": "🦴 Wątroba z Adamantium", "cost": 1500, "desc": "IGLISKO zabiera 10 HP zamiast 20 HP.", "hero": "Wolverine"},
-    "investor":   {"name": "💰 Inwestor Starka",      "cost": 2000, "desc": "Każde pozytywne kliknięcie daje +1 Kredyt ekstra.", "hero": "Tony Stark"},
-    "discount":   {"name": "🤝 Targowanie się",       "cost": 2500, "desc": "Ceny w Sklepie (Artefakty) niższe o 20%.", "hero": "Collector"},
-    "lucky":      {"name": "🍀 Szczęściarz",          "cost": 3000, "desc": "Szansa na Koło Fortuny wzrasta z 5% do 10%.", "hero": "Domino"}
+    "adamantium": {"name": "🦴 Wątroba z Adamantium", "cost": 800,  "desc": "IGLISKO zabiera 10 HP zamiast 20 HP.", "hero": "Wolverine"},
+    "investor":   {"name": "💰 Inwestor Starka",      "cost": 1200, "desc": "Każde pozytywne kliknięcie daje +10 Kredytów ekstra.", "hero": "Tony Stark"},
+    "discount":   {"name": "🤝 Targowanie się",       "cost": 1000, "desc": "Ceny w Sklepie (Artefakty) niższe o 20%.", "hero": "Collector"},
+    "lucky":      {"name": "🍀 Szczęściarz",          "cost": 1600, "desc": "Koło Fortuny: Szansa 10% i TYLKO pozytywne wyniki (usuwa pecha).", "hero": "Domino"}
 }
 
 # Funkcja pomocnicza do sprawdzania czy mamy perka
@@ -547,7 +547,7 @@ def calculate_currency(df, current_score, owned_stones):
         # B. Zarobki za kliki (Tylko jeśli to NIE był zakup)
         else:
             has_investor = df['Notatka'].str.contains("Inwestor Starka", na=False).any()
-            bonus_cash = 1 if has_investor else 0 
+            bonus_cash = 10 if has_investor else 0 
             if points >= 5: 
                 balance += (10 + bonus_cash) # <--- TU DODAJEMY BONUS
             elif points > 0: 
@@ -1541,48 +1541,50 @@ def main():
 # --- 🎰 KOŁO FORTUNY (GLOBALNY HAZARD) 🎰 ---
         chaos_change = 0
         
-        # 1. NAJPIERW OBLICZAMY SZANSĘ (PRZED IF-em!)
+        # 1. Sprawdzamy Perka (Domino)
         has_lucky_perk = has_perk(df, "lucky")
-        chance_threshold = 0.10 if has_lucky_perk else 0.05 # 10% lub 5%
+        chance_threshold = 0.10 if has_lucky_perk else 0.05 # 10% z perkiem, 5% bez
         
-        # 2. DOPIERO TERAZ SPRAWDZAMY WARUNEK
+        # 2. Losujemy czy uruchomić koło
         if random.random() < chance_threshold: 
             
-            # Losujemy jedną z 3 opcji
-            wheel_options = [-2, 0, 2]
+            # 🔥 LOGIKA DOMINO: Eliminacja pecha
+            if has_lucky_perk:
+                # Z perkiem: Tylko dobre opcje + JACKPOT (+5)
+                wheel_options = [0, 2, 2, 5] 
+                options_desc = "🍀 DOMINO EFFECT: Pech zablokowany!"
+            else:
+                # Bez perka: Ryzyko (-2, 0, 2)
+                wheel_options = [-2, 0, 2]
+                options_desc = "🎲 RYZYKO: Standardowe"
+
             chaos_change = random.choice(wheel_options)
             
-            # ... (reszta kodu: dźwięki, toast, aktualizacja punktów) ...
-            
-            # Aktualizujemy punkty
-            points += chaos_change
-            
-            # Wspólny efekt dźwiękowy dla "Zdarzenia Chaosu" (jeśli plik istnieje)
-            # Używamy tego samego dźwięku, żeby zasygnalizować "System coś wylosował"
+            # Dźwięk chaosu
             if os.path.exists("chaos_event.mp3"):
                 st.audio("chaos_event.mp3", autoplay=True)
-                # Wydłużamy nieco czas, żeby dźwięk zdążył wybrzmieć, jeśli inne są krótkie
                 if delay_time < 4.0: delay_time = 4.0
     
-            # --- SCENARIUSZ 1: FART (+2) ---
+            # --- SCENARIUSZ 1: FART / JACKPOT ---
             if chaos_change > 0:
-                st.toast(f"🎰 KOŁO FORTUNY: FART! Bonus +{chaos_change} pkt!", icon="🍀")
-                st.balloons()
+                if chaos_change >= 5:
+                     st.toast(f"🎰 JACKPOT (Domino)! Bonus +{chaos_change} pkt!", icon="🦄")
+                     st.balloons()
+                else:
+                     st.toast(f"🎰 KOŁO FORTUNY: FART! Bonus +{chaos_change} pkt!", icon="🍀")
     
-            # --- SCENARIUSZ 2: PECH (-2) ---
+            # --- SCENARIUSZ 2: PECH ---
             elif chaos_change < 0:
                 st.toast(f"🎰 KOŁO FORTUNY: PECH! Tracisz {abs(chaos_change)} pkt!", icon="💀")
-                # Tu usuwamy Deadpoola. Pech to po prostu ból wizualny (i strata pkt).
     
-            # --- SCENARIUSZ 3: BEZ ZMIAN (0) ---
+            # --- SCENARIUSZ 3: BEZ ZMIAN ---
             else:
-                st.toast("🎰 KOŁO FORTUNY: UFF... Przeszło obok. (0 zmian)", icon="😅")
+                st.toast("🎰 KOŁO FORTUNY: Przeszło obok (0 pkt).", icon="😅")
+                if has_lucky_perk:
+                    st.caption(f"⚡ {options_desc}") # Informacja dla gracza, że perk zadziałał
     
             # Dodajemy info do notatki
             user_note += f" [KOŁO: {chaos_change:+d}]"
-        # --- DALEJ LECI TWÓJ STARY KOD (EASTER EGGS I ZAPIS) ---
-        code_word = user_note.strip().lower()
-        # ... (reszta kodu: chimichanga, zapis do sheets itd.)
         
         # --- 🥚 EASTER EGGS (WERSJA TROLL) 🥚 ---
         code_word = user_note.strip().lower()
@@ -1707,6 +1709,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

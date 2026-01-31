@@ -1036,13 +1036,7 @@ def main():
     # ====================================================================
     
     # 1. Definiujemy zakładki DYNAMICZNIE (Sklep ukryty w Prologu)
-    if current_score >= 60:
-        # Wersja pełna (3 zakładki)
         tab1, tab2, tab3, tab4 = st.tabs(["📋 Misja Dnia", "📊 Statystyki", "🛒 Sklep", "⚙️ Ustawienia"])
-    else:
-        # Wersja demo (2 zakładki - Sklep jest niewidzialny)
-        tab1, tab2, tab4 = st.tabs(["🚀 Misja Dnia", "📊 Statystyki", "⚙️ Ustawienia"])
-        tab3 = None # Zmienna pusta, żeby kod się nie wywalił
     
     # --- ZAKŁADKA 1: MISJA DNIA ---
     with tab1:
@@ -1171,13 +1165,14 @@ def main():
                 st.caption("Za mało danych na wykres.")
         
 # --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
-        if tab3 is not None:
             with tab3:
                 st.header("🛒 Czarny Rynek Artefaktów")
                 
                 # 1. Portfel
                 wallet = calculate_currency(df, current_score, owned_stones)
                 st.metric(label="Dostępne Środki", value=f"{wallet} 🪙", delta="Kredyty Galaktyczne")
+                if current_score < 60:
+                    st.info("💡 Jesteś w Prologu. Zbieraj kredyty, ale pamiętaj: Bonus +300 🪙 otrzymasz dopiero po awansie na Agenta (60 pkt)!")
                 st.markdown("---")
                 
                 # 2. LOGIKA ROTACJI
@@ -1599,6 +1594,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

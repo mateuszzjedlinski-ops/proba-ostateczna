@@ -1140,14 +1140,12 @@ def main():
     with tab2:
         st.header("📊 Raport Agenta")
         
-        # UKRYWANIE KAMIENI W PROLOGU (Żeby nie psuć niespodzianki)
+        # UKRYWANIE KAMIENI W PROLOGU
         if current_score < 60:
-            # Wersja dla Stażysty (Tylko 2 kolumny)
             c1, c2 = st.columns(2)
             c1.metric("Całkowity EXP", f"{current_score}")
             c2.metric("Seria Dni", f"{streak_count} 🔥")
         else:
-            # Wersja dla Agenta (3 kolumny - dochodzą Kamienie)
             c1, c2, c3 = st.columns(3)
             c1.metric("Całkowity EXP", f"{current_score}")
             c2.metric("Kamienie", f"{owned_stones}/6")
@@ -1164,114 +1162,91 @@ def main():
             except:
                 st.caption("Za mało danych na wykres.")
         
-# --- ZAKŁADKA 3: SKLEP (Tylko jeśli istnieje!) ---
-            with tab3:
-                st.header("🛒 Czarny Rynek Artefaktów")
-                
-                # 1. Portfel
-                wallet = calculate_currency(df, current_score, owned_stones)
-                st.metric(label="Dostępne Środki", value=f"{wallet} 🪙", delta="Kredyty Galaktyczne")
-                if current_score < 60:
-                    st.info("💡 Jesteś w Prologu. Zbieraj kredyty, ale pamiętaj: Bonus +300 🪙 otrzymasz dopiero po awansie na Agenta (60 pkt)!")
-                st.markdown("---")
-                
-                # 2. LOGIKA ROTACJI
-                current_month = datetime.now().month
-                shop_rotation_index = ((current_month + 10) // 2) % 3
-                current_offer = SHOP_INVENTORY.get(shop_rotation_index, [])
-                rotation_names = ["Strażnicy & Najemnicy", "Avengers Assemble", "Magia & Kosmos"]
-                
-                st.info(f"📦 Obecna dostawa: **{rotation_names[shop_rotation_index]}**")
-                st.caption("Oferta zmienia się co 2 miesiące.")
+# --- ZAKŁADKA 3: SKLEP (TERAZ RÓWNO Z INNYMI) ---
+    with tab3:
+        st.header("🛒 Czarny Rynek Artefaktów")
         
-                # 3. Lista Artefaktów (Z ZABEZPIECZENIAMI)
-                for item in current_offer:
-                    c1, c2, c3 = st.columns([1, 3, 2])
-                    with c1:
-                        st.markdown(f"<div style='font-size: 50px; text-align: center;'>{item['icon']}</div>", unsafe_allow_html=True)
-                    with c2:
-                        st.subheader(item['name'])
-                        st.caption(item['desc'])
-                        st.markdown(f"**Bohater:** {item['hero']}")
-                    with c3:
-                        price = item['cost']
-                        
-                        # --- ZABEZPIECZENIE NR 2: BLOKADA UNIKATÓW ---
-                        # Sprawdzamy, czy w historii notatek jest już zakup tego przedmiotu
-                        already_owned = False
-                        if not df.empty and 'Notatka' in df.columns:
-                            # Szukamy dokładnego stringa identyfikującego zakup
-                            # regex=False jest ważne, bo nazwy mogą mieć znaki specjalne
-                            search_str = f"SHOP_BUY | {item['name']}"
-                            already_owned = df['Notatka'].astype(str).str.contains(search_str, regex=False).any()
+        # 1. Portfel
+        wallet = calculate_currency(df, current_score, owned_stones)
+        st.metric(label="Dostępne Środki", value=f"{wallet} 🪙", delta="Kredyty Galaktyczne")
+        if current_score < 60:
+            st.info("💡 Jesteś w Prologu. Zbieraj kredyty, ale pamiętaj: Bonus +300 🪙 otrzymasz dopiero po awansie na Agenta (60 pkt)!")
+        st.markdown("---")
+        
+        # 2. LOGIKA ROTACJI
+        current_month = datetime.now().month
+        shop_rotation_index = ((current_month + 10) // 2) % 3
+        current_offer = SHOP_INVENTORY.get(shop_rotation_index, [])
+        rotation_names = ["Strażnicy & Najemnicy", "Avengers Assemble", "Magia & Kosmos"]
+        
+        st.info(f"📦 Obecna dostawa: **{rotation_names[shop_rotation_index]}**")
+        st.caption("Oferta zmienia się co 2 miesiące.")
 
-                        if already_owned:
-                            st.button(f"✅ Już posiadasz", key=f"btn_owned_{item['name']}", disabled=True)
-                        else:
-                            # Przycisk zakupu (aktywny)
-                            if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
-                                
-                                # --- ZABEZPIECZENIE NR 3: LAG CLICK / RACE CONDITION ---
-                                with st.spinner("Weryfikacja transakcji..."):
-                                    # 1. Wymuszamy wyczyszczenie cache, żeby pobrać najnowsze dane z chmury
-                                    get_data_from_sheets.clear()
-                                    
-                                    # 2. Pobieramy świeży stan
-                                    fresh_df = get_data_from_sheets()
-                                    fresh_wallet = calculate_currency(fresh_df, current_score, owned_stones)
-                                    
-                                    # 3. Sprawdzamy saldo OSTATNI RAZ
-                                    if fresh_wallet < price:
-                                        st.error("❌ Transakcja odrzucona! Stan konta się zmienił (za mało środków).")
-                                    else:
-                                        # Jeśli wszystko gra -> Kupujemy
-                                        note_content = f"SHOP_BUY | {item['name']} | -{price}"
-                                        save_to_sheets("ZAKUP", 0, "Sklep", False, note_content)
-                                        
-                                        st.balloons()
-                                        st.success(f"✅ Kupiłeś: {item['name']}")
-                                        st.info(item['reaction']) 
-                                        
-                                        if os.path.exists("chaos_event.mp3"):
-                                            st.audio("chaos_event.mp3", autoplay=True)
-                                            
-                                        time.sleep(4)
-                                        st.rerun()
-                                        
-                    st.markdown("---")
+        # 3. Lista Artefaktów
+        for item in current_offer:
+            c1, c2, c3 = st.columns([1, 3, 2])
+            with c1:
+                st.markdown(f"<div style='font-size: 50px; text-align: center;'>{item['icon']}</div>", unsafe_allow_html=True)
+            with c2:
+                st.subheader(item['name'])
+                st.caption(item['desc'])
+                st.markdown(f"**Bohater:** {item['hero']}")
+            with c3:
+                price = item['cost']
+                
+                # ZABEZPIECZENIE: CZY POSIADA
+                already_owned = False
+                if not df.empty and 'Notatka' in df.columns:
+                    search_str = f"SHOP_BUY | {item['name']}"
+                    already_owned = df['Notatka'].astype(str).str.contains(search_str, regex=False).any()
 
-    # --- ZAKŁADKA 4: USTAWIENIA (PRZYPOMNIENIA) ---
-        if tab4 is not None:
-            with tab4:
-                st.header("⚙️ Centrum Konfiguracji")
-                st.write("Dostosuj parametry swojej misji.")
-                st.markdown("---")
-                
-                st.subheader("📅 Przypomnienia")
-                st.info("Regularność to klucz do sukcesu Agenta. Ustaw przypomnienie w kalendarzu, aby nie stracić passy (Streak)!")
-                
-                # Konfiguracja linku do Kalendarza Google
-                # To tworzy gotowe wydarzenie z linkiem do Twojej apki
-                base_calendar_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
-                event_title = "🦔 Dziennik Iglasty - Raport"
-                event_details = "Czas uzupełnić dziennik i sprawdzić postępy Agenta! 👉 https://pawel-lvl30.streamlit.app"
-                
-                # Możemy dodać parametr recurrence (powtarzanie), np. codziennie
-                # RRULE:FREQ=DAILY oznacza powtarzanie codzienne
-                calendar_url = f"{base_calendar_url}&text={event_title}&details={event_details}&recur=RRULE:FREQ=DAILY"
-                
-                col_sets_1, col_sets_2 = st.columns([1, 2])
-                with col_sets_1:
-                    st.markdown("### 🔔")
-                with col_sets_2:
-                    st.write("**Codzienny Raport**")
-                    st.caption("Kliknij, aby dodać stałe przypomnienie do swojego Kalendarza Google.")
-                    
-                    # Przycisk linkujący
-                    st.link_button("📅 Dodaj do Kalendarza", calendar_url)
-                
-                st.markdown("---")
-                st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
+                if already_owned:
+                    st.button(f"✅ Już posiadasz", key=f"btn_owned_{item['name']}", disabled=True)
+                else:
+                    if st.button(f"Kup ({price} 🪙)", key=f"btn_{item['name']}"):
+                        with st.spinner("Weryfikacja transakcji..."):
+                            get_data_from_sheets.clear()
+                            fresh_df = get_data_from_sheets()
+                            fresh_wallet = calculate_currency(fresh_df, current_score, owned_stones)
+                            
+                            if fresh_wallet < price:
+                                st.error("❌ Transakcja odrzucona! Za mało środków.")
+                            else:
+                                note_content = f"SHOP_BUY | {item['name']} | -{price}"
+                                save_to_sheets("ZAKUP", 0, "Sklep", False, note_content)
+                                st.balloons()
+                                st.success(f"✅ Kupiłeś: {item['name']}")
+                                st.info(item['reaction']) 
+                                if os.path.exists("chaos_event.mp3"):
+                                    st.audio("chaos_event.mp3", autoplay=True)
+                                time.sleep(4)
+                                st.rerun()
+            st.markdown("---")
+
+# --- ZAKŁADKA 4: USTAWIENIA (TERAZ RÓWNO Z INNYMI) ---
+    with tab4:
+        st.header("⚙️ Centrum Konfiguracji")
+        st.write("Dostosuj parametry swojej misji.")
+        st.markdown("---")
+        
+        st.subheader("📅 Przypomnienia")
+        st.info("Regularność to klucz do sukcesu Agenta. Ustaw przypomnienie w kalendarzu, aby nie stracić passy (Streak)!")
+        
+        base_calendar_url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+        event_title = "🦔 Dziennik Iglasty - Raport"
+        event_details = "Czas uzupełnić dziennik i sprawdzić postępy Agenta! 👉 https://pawel-lvl30.streamlit.app"
+        calendar_url = f"{base_calendar_url}&text={event_title}&details={event_details}&recur=RRULE:FREQ=DAILY"
+        
+        col_sets_1, col_sets_2 = st.columns([1, 2])
+        with col_sets_1:
+            st.markdown("### 🔔")
+        with col_sets_2:
+            st.write("**Codzienny Raport**")
+            st.caption("Kliknij, aby dodać stałe przypomnienie do swojego Kalendarza Google.")
+            st.link_button("📅 Dodaj do Kalendarza", calendar_url)
+        
+        st.markdown("---")
+        st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
         
     st.markdown("---")
     # (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
@@ -1594,6 +1569,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -3,3 +3,5 @@ google-generativeai>=0.7.0
 pandas
 gspread
 oauth2client
+pytz
+

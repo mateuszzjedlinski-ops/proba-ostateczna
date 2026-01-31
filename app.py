@@ -1415,7 +1415,6 @@ def main():
         
     st.markdown("---")
 
-        st.markdown("---")
         st.subheader("🚨 Strefa Awaryjna")
         
         col_undo_1, col_undo_2 = st.columns([1, 3])
@@ -1763,6 +1762,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

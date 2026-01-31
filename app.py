@@ -457,6 +457,38 @@ def save_to_sheets(status, points, comment, party_mode, note):
     except Exception as e:
         st.error(f"Błąd zapisu do arkusza: {e}")
 
+def undo_last_entry():
+    """Usuwa ostatni wiersz z arkusza Google Sheets."""
+    if client is None:
+        return False, "Brak połączenia z chmurą!"
+
+    try:
+        sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+        # Pobieramy wszystkie wartości, żeby znaleźć ostatni rząd
+        all_values = sheet.get_all_values()
+        
+        # Sprawdzamy, czy jest co usuwać (wiersz 1 to nagłówki, więc musi być > 1)
+        if len(all_values) <= 1:
+            return False, "Baza jest pusta (tylko nagłówki)!"
+            
+        # Pobieramy treść usuwanego wiersza (dla informacji co usuwamy)
+        last_row_content = all_values[-1]
+        row_index_to_delete = len(all_values) # Indeks ostatniego wiersza (1-based)
+        
+        # Kasujemy
+        sheet.delete_rows(row_index_to_delete)
+        
+        # Czyścimy cache, żeby aplikacja widziała zmianę
+        get_data_from_sheets.clear()
+        
+        # Zwracamy info co usunęliśmy (np. "IGLICA" z kolumny 3)
+        # Zabezpieczenie na wypadek krótkiego wiersza
+        item_name = last_row_content[2] if len(last_row_content) > 2 else "Wpis"
+        return True, f"Usunięto ostatni wpis: {item_name}"
+        
+    except Exception as e:
+        return False, f"Błąd usuwania: {e}"
+
 def get_total_score(df):
     if df.empty: return 0
     # Sumujemy wszystkie punkty z całej historii
@@ -1384,6 +1416,28 @@ def main():
         st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
         
     st.markdown("---")
+
+    st.markdown("---")
+        st.subheader("🚨 Strefa Awaryjna")
+        
+        col_undo_1, col_undo_2 = st.columns([1, 3])
+        with col_undo_1:
+            st.markdown("## ↩️")
+        with col_undo_2:
+            st.write("**Cofnij ostatnią akcję**")
+            st.caption("Jeśli kliknąłeś coś przez pomyłkę, ten przycisk trwale usunie ostatni wpis z bazy danych.")
+            
+            if st.button("🗑️ Usuń ostatni wpis", type="secondary"):
+                with st.spinner("Łączenie z Matrixem..."):
+                    success, msg = undo_last_entry()
+                    
+                    if success:
+                        st.success(msg)
+                        st.toast("✅ Cofnięto ostatnią akcję!", icon="🔙")
+                        time.sleep(1.5)
+                        st.rerun()
+                    else:
+                        st.error(msg)
     # (Tutaj zaczyna się Twój stary kod: col_note, col_toggle itd...)
     col_note, col_toggle = st.columns([3, 1])
     with col_note:
@@ -1711,6 +1765,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

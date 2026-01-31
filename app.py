@@ -527,7 +527,7 @@ def play_level_up_animation(new_cycle):
     time.sleep(1)
     placeholder.empty()
 
-def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode, df, streak_count, streak_type):
+def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, note, party_mode, df, streak_count, streak_type, previous_comment):
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-2.5-flash")
@@ -535,13 +535,10 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         # 1. Analiza wpisów z dzisiaj
         today_str = datetime.now().strftime("%Y-%m-%d")
         today_history = ""
-        
         if not df.empty:
             today_df = df[df['Data'] == today_str].sort_values(by='Godzina')
             if not today_df.empty:
-                entries = []
-                for _, row in today_df.iterrows():
-                    entries.append(f"{row['Godzina']} -> {row['Stan']} ({row['Punkty']} pkt)")
+                entries = [f"{row['Godzina']} -> {row['Stan']} ({row['Punkty']} pkt)" for _, row in today_df.iterrows()]
                 today_history = "\n".join(entries)
             else:
                 today_history = "To pierwszy wpis dzisiaj."
@@ -549,96 +546,70 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
             today_history = "Brak historii."
 
         # 2. Kamienie
-        stone_text = ""
-        if total_score >= 60:
-            stone_name = "Brak"
-            if owned_stones > 0 and owned_stones <= len(INFINITY_STONES_NAMES):
-                stone_name = INFINITY_STONES_NAMES[owned_stones - 1]
-            stone_text = f"Posiadane Kamienie: {owned_stones} (Ostatni: {stone_name})"
-        else:
-            stone_text = "Etap: PROLOG (Tutorial). Kamienie: Ukryte."
+        stone_text = f"Kamienie: {owned_stones}/6" if total_score >= 60 else "Etap: PROLOG."
 
-# 3. DEFINICJA OSOBOWOŚCI
+        # 3. ZAPOBIEGANIE POWTÓRZENIOM (Anti-Repetition)
+        last_comment_warning = ""
+        if previous_comment:
+            last_comment_warning = f"""
+            ⛔ OSTATNIO POWIEDZIAŁEŚ: "{previous_comment}"
+            ZASADA KRYTYCZNA: Nie możesz powtórzyć tego samego żartu, motywu ani słowa kluczowego (np. jeśli było o chimichandze, teraz musi być o czymś innym). Bądź kreatywny.
+            """
+
+        # 4. DEFINICJA OSOBOWOŚCI (V3.0 - FINAL CASTING)
         personality = ""
         
         if party_mode:
-            # --- TRYB IMPREZA (Thor vs Rocket) ---
-            if points < 0:
-                # Pijany, smutny Thor (Endgame)
-                personality = """
-                TRYB: PIJANY THOR (ENDGAME). 🍺😭
-                Paweł stracił punkty na imprezie.
-                - Jesteś totalnie pijany, płaczliwy i zrezygnowany.
-                - PATRZ NA HISTORIĘ Z DZISIAJ ("KONTEKST"):
-                  * Jeśli rano szło mu dobrze -> Płacz głośniej: "RANO BYŁO TAK PIĘKNIE, DLACZEGO TO ZEPSUŁEŚ?!".
-                  * Jeśli to kolejna wtopa -> "Jesteśmy beznadziejni...".
-                - Krzycz: "CZY JA JESZCZE JESTEM GODNY?!".
-                - Narzekaj na wszystko, proś o Krwawą Mary albo sery w sprayu.
-                """
-            else:
-                # Pijany, agresywny Rocket
-                personality = """
-                TRYB: PIJANY ROCKET RACCOON. 🦝🔥
-                Paweł zdobył punkty na imprezie.
-                - Jesteś euforyczny, agresywny i głośny.
-                - PATRZ NA HISTORIĘ Z DZISIAJ ("KONTEKST"):
-                  * Jeśli ma passę zwycięstw -> "NIKT CIĘ NIE ZATRZYMA! ROZWALASZ SYSTEM!".
-                  * Jeśli wcześniej było źle, a teraz dobrze -> "W KOŃCU SIĘ OBUDZIŁEŚ! PIJEMY!".
-                - Wznosisz toasty CAPS LOCKIEM.
-                - Krzycz: "JESTEŚ BOGIEM! TERAZ UKRADNIJ KOMUŚ NOGĘ!".
-                """
-        else:
-            # --- TRYB STANDARD (Deadpool + Rocket Mix) ---
-            # (Tutaj zostaje bez zmian, bo jest dobrze)
+            # --- TRYB IMPREZA: THOR + ROCKET ---
             personality = """
-            TRYB: ROCKET RACCOON & DEADPOOL (Zero IT, 100% Chaos).
+            TRYB: IMPREZA (THOR & ROCKET). Jesteś mieszanką boga piorunów i agresywnego szopa.
             
-            Twoim zadaniem jest komentowanie życia Pawła.
+            TWOJE CECHY (Mieszaj je):
+            1. 🍺 THOR:
+               - Jesteś głośny, wylewny i teatralny.
+               - Używasz słów: "Zacny trunek!", "Kolejny!", "Czy jesteś godzien?!".
+               - Jeśli traci punkty: "To wina Lokiego!", "Mój młot też czasem nie trafia".
+            2. 🦝 ROCKET RACCOON:
+               - Agresywny, chciwy, szuka zadymy.
+               - "Zamknij się i pij", "Ukradnę komuś nogę dla zabawy".
+               - Jeśli zdobywa punkty: "Nareszcie! Teraz kupujemy największą bombę w galaktyce!".
             
-            🚫 ZAKAZ UŻYWANIA TERMINOLOGII IT:
-            - ZABRANIAM słów: "kod", "procesor", "bugi", "zmienne", "system", "aktualizacja", "Ubisoft", "programista".
-            - Ty nie jesteś komputerem. Jesteś wrednym, ceramicznym jeżem z duszą najemnika.
+            STYL: Emocjonalny, chaotyczny, imprezowy. 
+            """
+        else:
+            # --- TRYB STANDARD: STAR-LORD + DEADPOOL ---
+            personality = """
+            TRYB: STANDARD (STAR-LORD & DEADPOOL).
             
-            MA BYĆ KLIMAT FILMU AKCJI / KOMIKSU, A NIE DZIAŁU IT.
+            TWOJE CECHY (Mieszaj je):
+            1. 🎧 STAR-LORD (Peter Quill):
+               - Jesteś "cool" (przynajmniej tak myślisz). Kochasz lata 80. i muzykę.
+               - Próbujesz być liderem: "Dobra plan jest taki...", "Wyglądamy jak legendy".
+               - Traktuj Pawła jak członka załogi, który trochę nie ogarnia.
+            2. ⚔️ DEADPOOL (Wade Wilson):
+               - Łamiesz 4. ścianę, ale FILMOWO (nie IT).
+               - Odnoś się do: "niskiego budżetu tej symulacji", "leniwych scenarzystów", "recyklingu fabuły".
+               - Unikaj nudnego "lubię chimichangi". Bądź kreatywny: "Moja twarz wygląda lepiej niż ten wynik", "Czy my jesteśmy w wersji reżyserskiej?".
             
-            TWOJE OSOBOWOŚCI:
-            1. ROCKET RACCOON 🦝:
-               - Jesteś chciwy, agresywny i uważasz wszystkich wokół za idiotów (zwłaszcza Pawła).
-               - Komentuj jak najemnik: "Tyle punktów? Nawet na amunicję nie starczy.", "Mój chomik ma lepszy cel."
-               - Obrażaj kreatywnie: "Wyglądasz jak awokado po przejściach", "Ruszasz się jak Drax w smole".
-            
-            2. DEADPOOL ⚔️:
-               - Bądź absurdalny. Wspominaj o chimichangach, jednorożcach i tanich filmach.
-               - Łam czwartą ścianę FILMOWO: "Kto pisał ten scenariusz?!", "Czy my jesteśmy w niskobudżetowej symulacji?".
-            
-            WYTYCZNE DO SYTUACJI:
-            - SUKCES (+IGLICA): Zbagatelizuj to. "Wow, brawo. Chcesz oklasków? Nie mam rąk."
-            - PORAŻKA (-IGLISKO): Wyśmiej to brutalnie. "HA! To było piękne! Zrób to jeszcze raz, nagram to!"
-            - STYL: Krótki, chamski, zero litości.
-            - ANALIZUJ HISTORIĘ Z DZISIAJ: Spójrz na sekcję "KONTEKST".
-              * Jeśli rano miał więcej pkt, a teraz mniej -> Wyśmiej spadek formy ("Rano lew, wieczorem... to?").
-              * Jeśli utrzymuje passę sukcesów -> Bądź podejrzliwy ("Za dobrze ci idzie, co kombinujesz?").
-              * Jeśli kolejna wtopa -> "Konsekwentnie dążysz do dna. Szanuję."
-            - Nie bądź płaczliwy (to rola Thora). Bądź cwaniakiem.
+            ZASADY STYLU:
+            - ZERO terminologii IT (zakaz słów: kod, python, skrypt, bug). Zastąp je słowami: scenariusz, glitch w Matrixie, budżet produkcji.
+            - Bądź dowcipny, ale też wymagający.
+            - Jeśli ma passę (streak): "Oho, ktoś tu czytał poradnik do gry?", "Star-Lord approves this moves!".
             """
 
         user_prompt = f"""
-        DANE WEJŚCIOWE:
-        Wybór Pawła: {status} ({points} pkt).
-        Notatka: "{note}"
-        
-        KONTEKST (Co robił wcześniej dzisiaj):
+        DANE: {status} ({points} pkt). Notatka: "{note}"
+        KONTEKST DZISIAJ:
         {today_history}
         
-        STATYSTYKI:
-        Passa (Combo): {streak_count} (Typ: {streak_type})
-        Całkowite punkty: {total_score}
-        {stone_text}
+        STATYSTYKI: Passa {streak_count}, Wynik {total_score}, {stone_text}
         
-        TWOJA ROLA (Postępuj zgodnie z tym opisem):
+        {last_comment_warning}
+        
+        ROLA:
         {personality}
         
-        Napisz krótki komentarz (max 2-3 zdania).
+        Napisz JEDEN krótki, celny komentarz (max 2 zdania). Ma być ostry i zabawny.
         """
         
         response = model.generate_content([
@@ -647,7 +618,7 @@ def get_hedgehog_comment(api_key, status, points, total_score, owned_stones, not
         ])
         return response.text
     except Exception as e:
-        return f"Jeż milczy. (BŁĄD: {str(e)})"
+        return f"Jeż milczy. (BŁĄD API)"
 
 # --- FUNKCJA DO KALENDARZA ---
 def create_cal_link(hour, title):
@@ -1275,9 +1246,18 @@ def main():
                     st.success(f"🔥 SERIA UTRZYMANA! ({streak_count + 1} dzień)")
             else:
                 if st.session_state.party_mode:
-                    st.success("🦝 ROCKET: Nieźle. Ale nie popadaj w zachwyt.")
+                    party_msgs = ["🍺 Zaksięgowano.", "🦝 Jeszcze jeden!", "🔥 Wchodzi gładko.", "💿 DJ, graj to!"]
+                    st.success(random.choice(party_msgs))
                 else:
-                    st.success("💎 Mały krok dla jeża.")
+                    system_msgs = [
+                        "✅ Dane zapisane.",
+                        "💾 Zaktualizowano bazę.",
+                        "💎 Dodano punkty.",
+                        "📡 Transmisja zakończona.",
+                        "📝 Odnotowano.",
+                        "🆗 Przyjęte."
+                    ]
+                    st.success(random.choice(system_msgs))
 
         # B. PORAŻKA (IGLISKO / MANDAT)
         elif points < 0:
@@ -1419,6 +1399,7 @@ def main():
                     df,
                     streak_count,
                     streak_type
+                    st.session_state.last_comment
                 )
                 
                 # 4. Zapisujemy do Google Sheets
@@ -1462,6 +1443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

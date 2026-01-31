@@ -125,7 +125,7 @@ HERO_QUOTES = [
     "„Legenda głosi, że ktoś kiedyś wyspał się w tygodniu.”",
     "„Pamiętaj, jesteś jak Kapitan Ameryka. Też byłeś zamrożony przez weekend.”",
     "„Zbroja Iron Mana? Fajnie, ale czy ma podgrzewane fotele?”",
-    "„Każdy ma swojego Kryptonita. Moim jest budzik.”"
+    "„Każdy ma swojego Kryptonita. Moim jest budzik.”",
     
    # DEADPOOL (Sarkazm i ból istnienia)
     "„Maximum Effort! ...przynajmniej dopóki nie skończy się kawa.” – Deadpool",
@@ -1241,7 +1241,7 @@ def main():
                     st.audio(audio, autoplay=True)
                     st.markdown("---")
                     st.image(gif, caption=cap, use_container_width=True)
-                    delay_time = 10.0
+                    delay_time = 8.0
                 else:
                     st.success(f"🔥 SERIA UTRZYMANA! ({streak_count + 1} dzień)")
             else:
@@ -1443,6 +1443,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

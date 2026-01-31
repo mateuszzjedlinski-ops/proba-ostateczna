@@ -1241,7 +1241,6 @@ def main():
                     st.audio(audio, autoplay=True)
                     st.markdown("---")
                     st.image(gif, caption=cap, use_container_width=True)
-                    delay_time = 8.0
                 else:
                     st.success(f"🔥 SERIA UTRZYMANA! ({streak_count + 1} dzień)")
             else:
@@ -1269,7 +1268,6 @@ def main():
                     if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
                         st.audio("thor_drunk.mp3", autoplay=True)
                         st.image("thor_drunk.gif", caption="🍺 Thor też ma gorszy dzień.")
-                        delay_time = 8.0
                     else:
                         st.error("🍺 Seria porażek.")
                 else:
@@ -1443,6 +1441,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

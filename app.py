@@ -49,6 +49,112 @@ st.set_page_config(
     layout="centered"
 )
 
+# --- 📜 ZLECENIA DNIA (DAILY BOUNTIES) - LISTA NA CAŁY MIESIĄC ---
+DAILY_BOUNTIES = [
+    # DZIEŃ 1-10 (Rozgrzewka i Budowanie Nawyków)
+    {"title": "Dzień Rozgrzewki", "desc": "Zdobądź dzisiaj przynajmniej 1 punkt EXP.", "reward": "20 Kredytów"},
+    {"title": "Czysta Karta", "desc": "Zakończ dzień bez ani jednego 'IGLISKA' (-4).", "reward": "30 Kredytów"},
+    {"title": "Dzień Abstynenta", "desc": "Nie użyj ani razu 'Trybu Impreza' (OFF).", "reward": "30 Kredytów"},
+    {"title": "Snajper Wyborowy", "desc": "Zdobądź 3x 'IGLICA' (+3) z rzędu.", "reward": "50 Kredytów"},
+    {"title": "Nocna Zmiana", "desc": "Zrób wpis do dziennika po godzinie 22:00.", "reward": "25 Kredytów"},
+    {"title": "Poranny Ptaszek", "desc": "Zrób pierwszy wpis przed godziną 10:00.", "reward": "25 Kredytów"},
+    {"title": "Hazardzista", "desc": "Klikaj tak długo, aż trafisz bonus/karę z Koła Fortuny.", "reward": "40 Kredytów"},
+    {"title": "Metoda Ant-Mana", "desc": "Zdobądź dokładnie 2x 'IGŁA' (+1) w ciągu dnia.", "reward": "30 Kredytów"},
+    {"title": "Leniwa Niedziela", "desc": "Ogranicz się do maksymalnie 2 wpisów dzisiaj.", "reward": "20 Kredytów"},
+    {"title": "Kapitan Chaos", "desc": "Zdobądź punkty w 'Trybie Impreza' (bez wpadki).", "reward": "35 Kredytów"},
+    
+    # DZIEŃ 11-20 (Wyzwania i Kreatywność)
+    {"title": "Kronikarz", "desc": "Dodaj notatkę dłuższą niż 3 słowa.", "reward": "20 Kredytów"},
+    {"title": "Równowaga Mocy", "desc": "Zakończ dzień z parzystą liczbą punktów EXP.", "reward": "25 Kredytów"},
+    {"title": "Szczęśliwa Trzynastka", "desc": "Zrób wpis między 13:00 a 13:59.", "reward": "30 Kredytów"},
+    {"title": "Stary Wyjadacz", "desc": "Zdobądź łącznie minimum 8 punktów EXP dzisiaj.", "reward": "40 Kredytów"},
+    {"title": "Czarna Wdowa", "desc": "Zrób wpis całkowicie bez notatki (cisza w eterze).", "reward": "20 Kredytów"},
+    {"title": "Sokołe Oko (Hawkeye)", "desc": "Traf w 'IGLICĘ' (+3) w swoim pierwszym wpisie dnia.", "reward": "30 Kredytów"},
+    {"title": "Gorączka Sobotniej Nocy", "desc": "Użyj 'Trybu Impreza' przynajmniej raz.", "reward": "25 Kredytów"},
+    {"title": "Doktor Strange", "desc": "Wpisz w notatce słowo 'Czas' lub 'Dormammu'.", "reward": "25 Kredytów"},
+    {"title": "Maratończyk", "desc": "Zrób 3 wpisy w ciągu jednego dnia.", "reward": "35 Kredytów"},
+    {"title": "Iron Man", "desc": "Zdobądź w sumie 10 punktów EXP z samych kliknięć.", "reward": "45 Kredytów"},
+    
+    # DZIEŃ 21-30 (Easter Eggi i Tryb Hard)
+    {"title": "Hulk Smash!", "desc": "Zalicz 'IGLICĘ' i 'IGŁĘ' w jeden dzień.", "reward": "40 Kredytów"},
+    {"title": "Jestem Groot", "desc": "Wpisz w notatce tylko 'I am Groot'.", "reward": "20 Kredytów"},
+    {"title": "Flash", "desc": "Zrób dwa wpisy w odstępie mniejszym niż 60 minut.", "reward": "35 Kredytów"},
+    {"title": "Star-Lord", "desc": "Wpisz w notatce tytuł dowolnej piosenki z lat 80.", "reward": "20 Kredytów"},
+    {"title": "Zimowy Żołnierz", "desc": "Zdobądź punkty dzisiaj (dowolna ilość).", "reward": "50 Kredytów"},
+    {"title": "Spider-Man", "desc": "Uniknij 'IGLUTEKA' i 'IGLISKA' przez cały dzień.", "reward": "30 Kredytów"},
+    {"title": "Potężny Thor", "desc": "Wbij 'IGLICĘ' w Trybie Impreza.", "reward": "45 Kredytów"},
+    {"title": "Nick Fury", "desc": "Odwiedź i sprawdź dokładnie zakładkę 'Statystyki'.", "reward": "20 Kredytów"},
+    {"title": "Bóg Kłamstw (Loki)", "desc": "Wpisz zabawne kłamstwo w notatce.", "reward": "20 Kredytów"},
+    {"title": "Pstryknięcie Thanosa", "desc": "Zrób rachunek sumienia (przejrzyj historię wpisów).", "reward": "20 Kredytów"}
+]
+
+def get_daily_bounty():
+    day_of_month = datetime.now().day
+    bounty_index = (day_of_month - 1) % len(DAILY_BOUNTIES)
+    return DAILY_BOUNTIES[bounty_index]
+
+def check_bounty_completion(bounty_title, df):
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    if df.empty: return False
+    try:
+        today_df = df[df['Data'] == today_str].copy()
+    except KeyError: return False
+    
+    if today_df.empty: return False
+    
+    # Konwersja typów dla bezpieczeństwa
+    today_df['Punkty'] = pd.to_numeric(today_df['Punkty'], errors='coerce').fillna(0)
+    today_df['Notatka'] = today_df['Notatka'].astype(str)
+    today_df['Stan'] = today_df['Stan'].astype(str)
+
+    if bounty_title == "Dzień Rozgrzewki": return today_df['Punkty'].sum() >= 1
+    elif bounty_title == "Czysta Karta": return (not today_df['Stan'].str.contains("IGLISKO").any()) and (len(today_df) > 0)
+    elif bounty_title == "Dzień Abstynenta": return (not today_df['Tryb Imprezowy'].isin(['ON', 'True', True, '1']).any()) and (len(today_df) > 0)
+    elif bounty_title == "Snajper Wyborowy":
+        stans = today_df.sort_values('Godzina')['Stan'].tolist()
+        streak = 0; max_streak = 0
+        for s in stans:
+            if s == "IGLICA": streak += 1
+            else: streak = 0
+            max_streak = max(max_streak, streak)
+        return max_streak >= 3
+    elif bounty_title == "Nocna Zmiana": return today_df['Godzina'].max() >= "22:00"
+    elif bounty_title == "Poranny Ptaszek": return today_df['Godzina'].min() < "10:00"
+    elif bounty_title == "Hazardzista": return today_df['Notatka'].str.contains("KOŁO:", regex=False).any()
+    elif bounty_title == "Metoda Ant-Mana": return len(today_df[today_df['Stan'] == "IGŁA"]) == 2
+    elif bounty_title == "Leniwa Niedziela": return 1 <= len(today_df) <= 2
+    elif bounty_title == "Kapitan Chaos": return ((today_df['Tryb Imprezowy'].isin(['ON', 'True'])) & (today_df['Punkty'] > 0)).any()
+    elif bounty_title == "Kronikarz":
+        user_notes = today_df[~today_df['Notatka'].str.contains("SHOP_BUY|BOUNTY", na=False)]
+        return user_notes['Notatka'].apply(lambda x: len(x.split()) > 3).any()
+    elif bounty_title == "Równowaga Mocy": total = today_df['Punkty'].sum(); return (total != 0) and (total % 2 == 0)
+    elif bounty_title == "Szczęśliwa Trzynastka": return today_df['Godzina'].apply(lambda x: x.startswith("13:")).any()
+    elif bounty_title == "Stary Wyjadacz": return today_df['Punkty'].sum() >= 8
+    elif bounty_title == "Czarna Wdowa": return (today_df['Notatka'] == "").any()
+    elif bounty_title == "Sokołe Oko (Hawkeye)": return today_df.sort_values('Godzina').iloc[0]['Stan'] == "IGLICA"
+    elif bounty_title == "Gorączka Sobotniej Nocy": return today_df['Tryb Imprezowy'].isin(['ON', 'True']).any()
+    elif bounty_title == "Doktor Strange": return today_df['Notatka'].str.contains("Czas|Dormammu", case=False).any()
+    elif bounty_title == "Maratończyk": return len(today_df) >= 3
+    elif bounty_title == "Iron Man": return today_df['Punkty'].sum() >= 10
+    elif bounty_title == "Hulk Smash!": return ("IGLICA" in today_df['Stan'].values) and ("IGŁA" in today_df['Stan'].values)
+    elif bounty_title == "Jestem Groot": return today_df['Notatka'].str.strip().eq("I am Groot").any()
+    elif bounty_title == "Flash":
+        if len(today_df) < 2: return False
+        try:
+            times = pd.to_datetime(today_str + " " + today_df['Godzina']).sort_values()
+            return (times.diff().dt.total_seconds() / 60 < 60).any()
+        except: return False
+    elif bounty_title == "Star-Lord":
+        user_notes = today_df[~today_df['Notatka'].str.contains("SHOP_BUY|BOUNTY", na=False)]
+        return len(user_notes) > 0 and (user_notes['Notatka'] != "").any()
+    elif bounty_title == "Zimowy Żołnierz": return today_df['Punkty'].sum() > 0
+    elif bounty_title == "Spider-Man": return (not today_df['Stan'].isin(["IGLUTEK", "IGLISKO"]).any()) and (len(today_df) > 0)
+    elif bounty_title == "Potężny Thor": return ((today_df['Stan'] == "IGLICA") & (today_df['Tryb Imprezowy'].isin(['ON', 'True']))).any()
+    # Zadania "Miękkie" (trudne do weryfikacji automatcznej, wymagają po prostu aktywności)
+    elif bounty_title in ["Nick Fury", "Bóg Kłamstw (Loki)", "Pstryknięcie Thanosa"]: return len(today_df) > 0
+    
+    return False
+
 # --- KONFIGURACJA PLIKÓW ---
 SNAP_SOUND_FILE = "snap.mp3"
 GOOGLE_SHEET_NAME = "Dziennik Iglasty Baza" # <--- UPEWNIJ SIĘ ŻE NAZWA JEST IDENTYCZNA JAK NA DRIVE
@@ -340,7 +446,14 @@ def calculate_currency(df, current_score, owned_stones):
                 cost = int(parts[-1]) 
                 balance += cost # Dodajemy ujemną liczbę
             except:
-                pass 
+                pass
+
+        elif "BOUNTY_CLAIM" in note:
+            try:
+                parts = note.split('|')
+                reward = int(parts[-1])
+                balance += reward
+            except: pass
                 
         # B. Zarobki za kliki (Tylko jeśli to NIE był zakup)
         else:
@@ -941,6 +1054,51 @@ def main():
             ❝ {daily_quote} ❞
         </div>
         """, unsafe_allow_html=True)
+
+        bounty = get_daily_bounty()
+        
+        # Wyciągamy kwotę z tekstu
+        try: bounty_value = int(bounty['reward'].split()[0])
+        except: bounty_value = 0
+
+        st.markdown("### 📜 Zlecenie Dnia")
+        
+        with st.container(border=True):
+            col_b1, col_b2 = st.columns([1, 5])
+            with col_b1: st.markdown("# 🎯")
+            with col_b2:
+                st.markdown(f"**{bounty['title']}**")
+                st.caption(f"{bounty['desc']}")
+                st.info(f"Nagroda: {bounty['reward']}")
+                
+                # Weryfikacja
+                is_completed = check_bounty_completion(bounty['title'], df)
+                
+                # Sprawdzenie czy odebrano
+                today_iso = datetime.now().strftime("%Y-%m-%d")
+                already_claimed = False
+                if not df.empty and 'Notatka' in df.columns:
+                    search_tag = f"BOUNTY_CLAIM | {today_iso}"
+                    already_claimed = df['Notatka'].astype(str).str.contains(search_tag, regex=False).any()
+                
+                # Przycisk
+                if already_claimed:
+                    st.success("✅ Nagroda odebrana!")
+                else:
+                    if st.button(f"💰 Odbierz {bounty_value} Kredytów", disabled=not is_completed):
+                        note_content = f"BOUNTY_CLAIM | {today_iso} | {bounty_value}"
+                        save_to_sheets("NAGRODA", 0, "Zlecenie Dnia", False, note_content)
+                        st.balloons()
+                        st.toast(f"Wypłacono {bounty_value} kredytów!", icon="🤑")
+                        time.sleep(2)
+                        st.rerun()
+                    
+                    if not is_completed:
+                        st.caption("🔒 *Zadanie niezweryfikowane. Wykonaj cel, aby odblokować.*")
+                    else:
+                        st.caption("🔓 *Zadanie wykonane! Odbierz nagrodę.*")
+        
+        st.markdown("---")
         
         # A. ETAP SKARBCA (60+ PKT)
         if current_score >= 60:
@@ -1441,6 +1599,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

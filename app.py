@@ -1118,6 +1118,7 @@ def main():
     
         # B. ETAP PROLOGU (0-59 PKT)
         else:
+            safe_score = max(0, current_score)
             prolog_stage_index = int(current_score // 15)
             prolog_stage_index = min(prolog_stage_index, 3)
             
@@ -1569,6 +1570,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

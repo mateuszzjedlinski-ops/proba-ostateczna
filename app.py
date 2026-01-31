@@ -1036,7 +1036,7 @@ def main():
     # ====================================================================
     
     # 1. Definiujemy zakładki DYNAMICZNIE (Sklep ukryty w Prologu)
-        tab1, tab2, tab3, tab4 = st.tabs(["📋 Misja Dnia", "📊 Statystyki", "🛒 Sklep", "⚙️ Ustawienia"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Misja Dnia", "📊 Statystyki", "🛒 Sklep", "⚙️ Ustawienia"])
     
     # --- ZAKŁADKA 1: MISJA DNIA ---
     with tab1:
@@ -1594,6 +1594,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

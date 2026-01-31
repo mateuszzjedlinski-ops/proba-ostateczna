@@ -1413,9 +1413,10 @@ def main():
         st.markdown("---")
         st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
         
-    st.markdown("---")
-
+        # --- STREFA AWARYJNA (POPRAWIONE WCIĘCIA) ---
+        st.markdown("---")
         st.subheader("🚨 Strefa Awaryjna")
+        
         col_undo_1, col_undo_2 = st.columns([1, 3])
         with col_undo_1:
             st.markdown("## ↩️")
@@ -1761,6 +1762,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

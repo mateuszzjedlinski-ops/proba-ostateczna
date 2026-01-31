@@ -7,6 +7,7 @@ import os
 import random
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import pytz
 
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(
@@ -105,12 +106,12 @@ DAILY_BOUNTIES = [
 ]
 
 def get_daily_bounty():
-    day_of_month = datetime.now().day
+    day_of_month = get_polish_time().day 
     bounty_index = (day_of_month - 1) % len(DAILY_BOUNTIES)
     return DAILY_BOUNTIES[bounty_index]
 
 def check_bounty_completion(bounty_title, df):
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    today_str = get_polish_time().strftime("%Y-%m-%d")
     
     if df.empty: return False
     
@@ -402,6 +403,11 @@ def init_session_state():
     if 'snap_played' not in st.session_state:
         st.session_state.snap_played = False
 
+def get_polish_time():
+    """Zwraca obecny czas w strefie Europe/Warsaw"""
+    utc_now = datetime.now(pytz.utc)
+    return utc_now.astimezone(pytz.timezone('Europe/Warsaw'))
+
 def get_daily_quote():
     today_seed = datetime.now().strftime("%Y%m%d")
     random.seed(int(today_seed))
@@ -431,12 +437,12 @@ def save_to_sheets(status, points, comment, party_mode, note):
 
     try:
         sheet = client.open(GOOGLE_SHEET_NAME).sheet1
-        now = datetime.now()
+        now = get_polish_time()
         
         # Przygotuj wiersz
         row = [
             now.strftime("%Y-%m-%d"),
-            now.strftime("%H:%M"),
+            now.strftime("%H:%M"), # Teraz wpisze np. 23:30 zamiast 21:30
             status,
             points,
             note,
@@ -502,73 +508,62 @@ def calculate_currency(df, current_score, owned_stones):
     2. Historia (Kliki + Zakupy) - naliczane z arkusza.
     3. Bonusy za staż imprezowy.
     """
-    balance = 0
+balance = 0
 
-    # --- 1. BONUSY STAŁE (Działają nawet przy pustym arkuszu!) ---
-    
-    # A. Grant na start Sklepu (Poziom 60+)
+    # 1. BONUSY STAŁE
     if current_score >= 60:
         balance += 300 
-
-    # B. Bonus za Kamienie (max 5 płatnych)
     stones_rewarded = min(owned_stones, 5)
     balance += (stones_rewarded * 200)
 
-    # --- 2. JEŚLI ARKUSZ PUSTY -> Zwracamy to co mamy (300 + kamienie) ---
     if df.empty:
         return balance
 
-    # --- 3. HISTORIA TRANSAKCJI (Jeśli są wpisy) ---
-    for index, row in df.iterrows():
+    # --- 🔥 POPRAWKA WYDAJNOŚCI: SPRAWDZAMY RAZ, PRZED PĘTLĄ! ---
+    # To wyciągnęliśmy przed "for index, row..."
+    has_investor = df['Notatka'].str.contains("Inwestor Starka", na=False).any()
+    bonus_cash = 10 if has_investor else 0 
+    # ------------------------------------------------------------
+
+    # 3. HISTORIA TRANSAKCJI
+    for index, row in df.iterrows(): # <--- Pętla zaczyna się dopiero TU
         try:
             points = int(row.get('Punkty', 0))
         except:
             points = 0
-            
         note = str(row.get('Notatka', '')).strip()
 
-        # A. Wydatki (Zakupy w sklepie i Mandaty)
         if "SHOP_BUY" in note:
             try:
                 parts = note.split('|')
-                # Ostatni element to zazwyczaj kwota (np. -100)
                 cost = int(parts[-1]) 
-                balance += cost # Dodajemy ujemną liczbę
-            except:
-                pass
-
+                balance += cost 
+            except: pass
         elif "BOUNTY_CLAIM" in note:
             try:
                 parts = note.split('|')
                 reward = int(parts[-1])
                 balance += reward
             except: pass
-                
-        # B. Zarobki za kliki (Tylko jeśli to NIE był zakup)
         else:
-            has_investor = df['Notatka'].str.contains("Inwestor Starka", na=False).any()
-            bonus_cash = 10 if has_investor else 0 
+            # Tutaj już tylko korzystamy z obliczonego wcześniej bonusu
+            # Nie sprawdzamy df['Notatka'] za każdym razem
             if points >= 5: 
-                balance += (10 + bonus_cash) # <--- TU DODAJEMY BONUS
+                balance += (10 + bonus_cash) 
             elif points > 0: 
-                balance += (5 + bonus_cash)  # <--- TU TEŻ
+                balance += (5 + bonus_cash)  
             elif points < 0: 
-                balance += 1  # Pocieszenie
+                balance += 1   
 
-    # --- 4. BONUSY ZA IMPREZY (Twoja sekcja z wierszy 339-347) ---
+    # 4. BONUSY ZA IMPREZY
     try:
-        # Liczymy ile razy był tryb impreza (zakładając True/False lub "ON")
-        # Musimy obsłużyć oba przypadki zapisu w bazie
         party_count = len(df[df['Tryb'].astype(str).isin(['True', 'ON', '1'])])
-    except:
-        party_count = 0
-
+    except: party_count = 0
+    
     thresholds = [3, 6, 9, 12, 15]
     for t in thresholds:
-        if party_count >= t:
-            balance += 150
+        if party_count >= t: balance += 150
 
-    # Zabezpieczenie przed ujemnym saldem
     return max(0, balance)
 
 def calculate_hp(df):
@@ -941,22 +936,29 @@ def main():
     
     # 6. Przycisk Resetu (Nowa Gra / Prestige Mode)
         # Poprawiona nazwa: PSTRYKNIJ
-        if st.button("🔄 PSTRYKNIJ PALCAMI (Zresetuj Wszechświat i Zacznij Od Nowa)", type="primary"):
-            
-            # A. Dźwięk Pstryknięcia (The Snap)
-            if os.path.exists(SNAP_SOUND_FILE):
-                st.audio(SNAP_SOUND_FILE, format="audio/mp3", autoplay=True)
-            
-            # B. Komunikat
-            st.toast("🫰 Pstryk! Równowaga przywrócona...")
-            
-            # C. Czyścimy pamięć podręczną sesji
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            
-            # D. Czekamy chwilę, żeby dźwięk wybrzmiał (3 sekundy)
-            time.sleep(3.0)
-            st.rerun()
+    if st.button("🔄 PSTRYKNIJ PALCAMI (Zresetuj Wszechświat)", type="primary"):
+        if os.path.exists(SNAP_SOUND_FILE):
+            st.audio(SNAP_SOUND_FILE, format="audio/mp3", autoplay=True)
+        
+        # --- FIX: CZYSZCZENIE ARKUSZA ---
+        try:
+            sheet = client.open(GOOGLE_SHEET_NAME).sheet1
+            # Zostawiamy nagłówki (pierwszy wiersz), kasujemy resztę
+            # Uwaga: resize(1) to szybka metoda na ucięcie arkusza do 1 wiersza
+            sheet.resize(rows=1) 
+            sheet.resize(rows=1000) # Przywracamy rozmiar, ale puste wiersze
+            get_data_from_sheets.clear() # Czyścimy cache w aplikacji
+        except Exception as e:
+            st.error(f"Błąd resetowania bazy: {e}")
+            st.stop()
+        # -------------------------------
+
+        st.toast("🫰 Pstryk! Równowaga przywrócona...")
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        
+        time.sleep(3.0)
+        st.rerun()
     
         # 🛑 KLUCZOWE: Zatrzymujemy resztę aplikacji! 🛑
         # Dzięki temu nie wyświetli się reszta gry (przyciski, sidebar itp.)
@@ -1163,7 +1165,7 @@ def main():
                 is_completed = check_bounty_completion(bounty['title'], df)
                 
                 # Sprawdzenie czy odebrano
-                today_iso = datetime.now().strftime("%Y-%m-%d")
+                today_iso = get_polish_time().strftime("%Y-%m-%d")
                 already_claimed = False
                 if not df.empty and 'Notatka' in df.columns:
                     search_tag = f"BOUNTY_CLAIM | {today_iso}"
@@ -1444,8 +1446,8 @@ def main():
         # 2. ANTI-CWANIAK (IMPREZY W TYGODNIU)
         penalty_applied = False
         if st.session_state.party_mode:
-            today = datetime.now()
-            if today.weekday() < 5: # Pon-Czw (Piątek wieczór to już weekend)
+            today = get_polish_time()
+            if today.weekday() < 5:# Pon-Czw (Piątek wieczór to już weekend)
                 yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")
                 today_str = today.strftime("%Y-%m-%d")
                 
@@ -1709,6 +1711,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

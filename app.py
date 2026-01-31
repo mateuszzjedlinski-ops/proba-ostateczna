@@ -540,8 +540,7 @@ def calculate_currency(df, current_score, owned_stones):
     2. Historia (Kliki + Zakupy) - naliczane z arkusza.
     3. Bonusy za staż imprezowy.
     """
-balance = 0
-
+    balance = 0
     if current_score >= 60:
         balance += 300 
     stones_rewarded = min(owned_stones, 5)
@@ -1764,6 +1763,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

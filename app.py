@@ -542,7 +542,6 @@ def calculate_currency(df, current_score, owned_stones):
     """
 balance = 0
 
-    # 1. BONUSY STAŁE
     if current_score >= 60:
         balance += 300 
     stones_rewarded = min(owned_stones, 5)
@@ -1765,6 +1764,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

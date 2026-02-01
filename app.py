@@ -1564,14 +1564,21 @@ def main():
                         st.error("🚨 RECYDYWA! MANDAT -100 KREDYTÓW.")
 
         # 3. ANTI-CHEAT (LIMIT 3 KLIKÓW)
-        today_str_ac = datetime.now().strftime('%Y-%m-%d')
+        today_str_ac = get_polish_time().strftime('%Y-%m-%d')
         try:
-            todays_count = len(df[df['Data'] == today_str_ac])
-        except:
+            today_entries = df[df['Data'] == today_str_ac]
+            user_actions = today_entries[
+                ~today_entries['Notatka'].astype(str).str.contains("BOUNTY_CLAIM|SHOP_BUY|PERK_BUY", na=False)
+            ]
+            
+            todays_count = len(user_actions)
+            
+        except Exception as e:
             todays_count = 0
             
         if todays_count >= 3:
             st.error("🛑 LIMIT 3 AKCJI DZIENNIE! Odpocznij.")
+            st.caption(f"Wykonane akcje: {todays_count}/3 (Nagrody i zakupy nie wliczają się do limitu)")
             time.sleep(2)
             st.rerun()
 
@@ -1802,6 +1809,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

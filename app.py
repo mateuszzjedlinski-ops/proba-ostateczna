@@ -508,23 +508,35 @@ def calculate_current_streak(df):
     
     for index, row in df.iloc[::-1].iterrows():
         try:
-            points = int(row['Punkty'])
+            points = int(row.get('Punkty', 0))
         except:
-            break
+            continue
             
+        note = str(row.get('Notatka', ''))
+        status = str(row.get('Stan', ''))
+
+        # 🔥 FIX: IGNORUJEMY AKCJE SYSTEMOWE
+        # Jeśli to nagroda, zakup lub perk -> Pomiń ten wiersz i szukaj dalej (nie przerywaj passy)
+        if "BOUNTY_CLAIM" in note or "SHOP_BUY" in note or "PERK_BUY" in note or "NAGRODA" in status:
+            continue
+
+        # Logika Passy
         if points > 0:
             current_type = 'positive'
         elif points < 0:
             current_type = 'negative'
         else:
+            # Jeśli to "IGLIK" (0 pkt) lub inna akcja gracza za 0 pkt -> Przerywamy passę
             break 
             
+        # Zliczanie
         if streak_type is None:
             streak_type = current_type
             streak += 1
         elif streak_type == current_type:
             streak += 1
         else:
+            # Zmiana typu (np. z plusa na minus) -> Koniec passy
             break
             
     return streak, streak_type
@@ -1808,6 +1820,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

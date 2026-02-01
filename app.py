@@ -1510,8 +1510,7 @@ def main():
     # --- LOGIKA PO KLIKNIĘCIU (Twoja sprawdzona sekcja) ---
     if selected:
 
-        # 👇👇👇 POCZĄTEK BLOKADY SPAMU (DEBOUNCE) 👇👇👇
-        import time # Upewnij się, że time jest zaimportowane (jest na górze pliku, więc ok)
+        # 👇👇👇 POCZĄTEK BLOKADY SPAMU (DEBOUNCE)
         current_time = time.time()
         
         # Sprawdzamy czy minęły 2 sekundy od ostatniego kliknięcia
@@ -1809,6 +1808,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

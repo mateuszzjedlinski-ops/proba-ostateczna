@@ -1593,14 +1593,30 @@ def main():
             time.sleep(2)
             st.rerun()
 
-        # 4. AUDIO & VISUAL FEEDBACK (Naprawiony)
+# 4. AUDIO & VISUAL FEEDBACK (POPRAWIONE NA LIMIT DZIENNY 3x)
         delay_time = 2.5
         
+        # --- OBLICZANIE LICZNIKA DZIENNEGO ---
+        # Sprawdzamy historię TYLKO z dzisiaj, żeby nagroda była za "hat-tricka" danego dnia
+        today_iso = datetime.now().strftime("%Y-%m-%d")
+        
+        try:
+            today_df = df[df['Data'] == today_iso]
+            # Liczymy ile razy DZIŚ wystąpiła IGLICA i IGLISKO w bazie
+            # (Baza nie zawiera jeszcze obecnego kliknięcia, bo save_to_sheets jest niżej)
+            daily_iglica_count = len(today_df[today_df['Stan'] == "IGLICA"])
+            daily_iglisko_count = len(today_df[today_df['Stan'] == "IGLISKO"])
+        except:
+            daily_iglica_count = 0
+            daily_iglisko_count = 0
+            
         # A. SUKCES (IGLICA / IGŁA)
         if points > 0:
-            is_streak = (status == "IGLICA" and streak_count >= 2 and streak_type == 'positive')
+            # WARUNEK: Kliknięto IGLICĘ + w bazie są już dokładnie 2 Iglice z dzisiaj = RAZEM 3
+            # To gwarantuje, że nagroda wyskoczy TYLKO za 3. razem danego dnia.
+            is_daily_combo = (status == "IGLICA" and daily_iglica_count == 2)
             
-            if is_streak:
+            if is_daily_combo:
                 # Losujemy nagrodę (Star-Lord lub Deadpool)
                 rewards = [
                     ("starlord.gif", "gotg_win.mp3", "🕺 DANCE OFF! Star-Lord wymiata!"),
@@ -1609,12 +1625,12 @@ def main():
                 gif, audio, cap = random.choice(rewards)
                 
                 if os.path.exists(audio) and os.path.exists(gif):
-                    st.toast(f"🔥 SERIA: {streak_count + 1}!", icon="🎉")
+                    st.toast(f"🔥 TRZECIA IGLICA DZISIAJ!", icon="🎉")
                     st.audio(audio, autoplay=True)
                     st.markdown("---")
                     st.image(gif, caption=cap, use_container_width=True)
                 else:
-                    st.success(f"🔥 SERIA UTRZYMANA! ({streak_count + 1} dzień)")
+                    st.success(f"🔥 HAT-TRICK! Trzecia IGLICA dzisiaj!")
             else:
                 if st.session_state.party_mode:
                     party_msgs = ["🍺 Zaksięgowano.", "🦝 Jeszcze jeden!", "🔥 Wchodzi gładko.", "💿 DJ, graj to!"]
@@ -1632,19 +1648,21 @@ def main():
 
         # B. PORAŻKA (IGLISKO / MANDAT)
         elif points < 0:
-            is_fail_streak = (status == "IGLISKO" and streak_count >= 2 and streak_type == 'negative')
+            # WARUNEK: Kliknięto IGLISKO + w bazie są już dokładnie 2 Igliska z dzisiaj
+            is_fail_combo = (status == "IGLISKO" and daily_iglisko_count == 2)
             
-            if is_fail_streak:
+            if is_fail_combo:
                 if st.session_state.party_mode:
-                    # Impreza -> Pijany Thor
+                    # Impreza -> Pijany Thor (Tylko przy 3. Iglisku dzisiaj)
                     if os.path.exists("thor_drunk.mp3") and os.path.exists("thor_drunk.gif"):
+                        st.toast(f"🍺 TRZECIE IGLISKO... Ouch.", icon="🤢")
                         st.audio("thor_drunk.mp3", autoplay=True)
                         st.image("thor_drunk.gif", caption="🍺 Thor też ma gorszy dzień.")
                     else:
-                        st.error("🍺 Seria porażek.")
+                        st.error("🍺 Hat-trick porażek.")
                 else:
                     # Standard -> Rocket (Tylko tekst)
-                    insults = ["🦝 ROCKET: Daj mi ster!", "🦝 ROCKET: Tragedia."]
+                    insults = ["🦝 ROCKET: Trzy wpadki w jeden dzień? Serio?!", "🦝 ROCKET: Daj mi ster, bo się rozbijesz."]
                     st.error(random.choice(insults))
             else:
                 st.error("💀 Auć.")
@@ -1820,6 +1838,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -111,7 +111,9 @@ def get_daily_bounty():
     return DAILY_BOUNTIES[bounty_index]
 
 def check_bounty_completion(bounty_title, df):
-    today_str = get_polish_time().strftime("%Y-%m-%d")
+    now = get_polish_time()
+    today_str = now.strftime("%Y-%m-%d")
+    current_hour = now.hour
     
     if df.empty: return False
     
@@ -121,6 +123,11 @@ def check_bounty_completion(bounty_title, df):
     except KeyError: return False
     
     if today_df.empty: return False
+
+    player_moves_df = today_df[
+        ~today_df['Notatka'].astype(str).str.contains("BOUNTY_CLAIM|SHOP_BUY|PERK_BUY", na=False)
+    ]
+    moves_count = len(player_moves_df)
     
     # 2. Normalizacja danych (kluczowe dla zaliczania zadań w obu trybach)
     today_df['Punkty'] = pd.to_numeric(today_df['Punkty'], errors='coerce').fillna(0)
@@ -137,12 +144,13 @@ def check_bounty_completion(bounty_title, df):
 
     elif bounty_title == "Czysta Karta":
         # Sprawdzamy czy wystąpiło IGLISKO (Działa w obu trybach, bo nazwa ta sama)
-        return (not today_df['Stan'].str.contains("IGLISKO").any()) and (len(today_df) > 0)
+        has_fail = today_df['Stan'].str.contains("IGLISKO").any()
+        return (not has_fail) and (moves_count >= 3)
 
     elif bounty_title == "Dzień Abstynenta":
         # TO JEDYNE ZADANIE, KTÓRE ZABRANIA TRYBU IMPREZA
         party_used = today_df['Tryb Imprezowy'].isin(['ON', 'True', '1']).any()
-        return (not party_used) and (len(today_df) > 0)
+        return (not party_used) and (moves_count >= 3)
 
     elif bounty_title == "Snajper Wyborowy":
         # Liczymy serię "IGLICA". Ponieważ w Trybie Impreza przycisk też nazywa się "IGLICA",
@@ -169,7 +177,7 @@ def check_bounty_completion(bounty_title, df):
         return len(today_df[today_df['Stan'] == "IGŁA"]) == 2
 
     elif bounty_title == "Leniwa Niedziela":
-        return 1 <= len(today_df) <= 2
+          return (1 <= moves_count <= 2) and (current_hour >= 22)
 
     elif bounty_title == "Kapitan Chaos":
         # To zadanie WYMAGA trybu impreza i sukcesu (pkt > 0)
@@ -181,7 +189,7 @@ def check_bounty_completion(bounty_title, df):
 
     elif bounty_title == "Równowaga Mocy":
         total = today_df['Punkty'].sum()
-        return (total != 0) and (total % 2 == 0)
+        return (total != 0) and (total % 2 == 0) and (moves_count >= 3)
 
     elif bounty_title == "Szczęśliwa Trzynastka":
         return today_df['Godzina'].apply(lambda x: x.startswith("13:")).any()
@@ -233,7 +241,8 @@ def check_bounty_completion(bounty_title, df):
     elif bounty_title == "Spider-Man":
         # Uniknij minusów. W Trybie Impreza IGLISKO to też IGLISKO (tylko boleśniejsze),
         # więc warunek działa poprawnie (blokuje zaliczenie).
-        return (not today_df['Stan'].isin(["IGLUTEK", "IGLISKO"]).any()) and (len(today_df) > 0)
+        has_bad = today_df['Stan'].isin(["IGLUTEK", "IGLISKO"]).any()
+        return (not has_bad) and (moves_count >= 3)
 
     elif bounty_title == "Potężny Thor":
         # WYMAGA Trybu Impreza
@@ -1253,7 +1262,18 @@ def main():
                         st.rerun()
                     
                     if not is_completed:
-                        st.caption("🔒 *Zadanie niezweryfikowane. Wykonaj cel, aby odblokować.*")
+                        # 1. Specjalny komunikat dla Leniwej Niedzieli
+                        if bounty['title'] == "Leniwa Niedziela":
+                            st.caption("⏳ *Warunek czasu: Odbiór nagrody możliwy dopiero po godz. 22:00.*")
+                        
+                        # 2. Specjalny komunikat dla zadań wymagających 3 wpisów (Czysta Karta itp.)
+                        elif bounty['title'] in ["Czysta Karta", "Dzień Abstynenta", "Spider-Man", "Równowaga Mocy"]:
+                            st.caption("🔒 *Musisz dotrwać do końca dnia (wymagane 3 wpisy).*")
+                            
+                        # 3. Domyślny komunikat dla reszty
+                        else:
+                            st.caption("🔒 *Zadanie niezweryfikowane. Wykonaj cel, aby odblokować.*")
+                            
                     else:
                         st.caption("🔓 *Zadanie wykonane! Odbierz nagrodę.*")
         
@@ -1838,6 +1858,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

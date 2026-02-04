@@ -1510,7 +1510,7 @@ def main():
 # ============================================================
     # 🕒 SYSTEM COOLDOWN (BLOKADA SPEEDRUNU)
     # ============================================================
-    COOLDOWN_HOURS = 2.0  # <--- TU ZMIEŃ CZAS (np. na 3.0 lub 4.0)
+    COOLDOWN_HOURS = 0.01  # <--- TU ZMIEŃ CZAS (np. na 3.0 lub 4.0)
     on_cooldown = False
     time_left_str = ""
     
@@ -1909,6 +1909,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

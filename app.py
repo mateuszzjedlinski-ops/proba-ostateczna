@@ -1506,6 +1506,45 @@ def main():
     
     st.write("")
     selected = None  # Reset wyboru
+
+# ============================================================
+    # 🕒 SYSTEM COOLDOWN (BLOKADA SPEEDRUNU)
+    # ============================================================
+    COOLDOWN_HOURS = 2.0  # <--- TU ZMIEŃ CZAS (np. na 3.0 lub 4.0)
+    on_cooldown = False
+    time_left_str = ""
+    
+    # 1. Sprawdzamy ostatni wpis z DZIŚ
+    if not df.empty:
+        today_str = get_polish_time().strftime("%Y-%m-%d")
+        # Filtrujemy wpisy gracza (ignorujemy zakupy/nagrody)
+        today_actions = df[
+            (df['Data'] == today_str) & 
+            (~df['Notatka'].str.contains("SHOP_BUY|BOUNTY", na=False)) &
+            (df['Punkty'] != 0)
+        ].copy()
+        
+        if not today_actions.empty:
+            # Sortujemy, żeby wziąć najnowszy
+            last_action = today_actions.sort_values(by='Godzina', ascending=False).iloc[0]
+            last_time_str = last_action['Godzina']
+            
+            # Konwersja na obiekt czasu
+            now = get_polish_time()
+            last_action_dt = datetime.strptime(f"{today_str} {last_time_str}", "%Y-%m-%d %H:%M")
+            last_action_dt = now.replace(hour=last_action_dt.hour, minute=last_action_dt.minute, second=0)
+            
+            # Obliczamy różnicę
+            diff = now - last_action_dt
+            diff_hours = diff.total_seconds() / 3600.0
+            
+            if diff_hours < COOLDOWN_HOURS:
+                on_cooldown = True
+                wait_seconds = int((COOLDOWN_HOURS * 3600) - diff.total_seconds())
+                wait_minutes = wait_seconds // 60
+                wait_hours_disp = wait_minutes // 60
+                wait_minutes_disp = wait_minutes % 60
+                time_left_str = f"{wait_hours_disp}h {wait_minutes_disp}m"
     
     # --- 💀 LOGIKA SZPITALA (Warunek: Agent + 0 HP) ---
     if current_score >= 60 and current_hp <= 0:
@@ -1515,6 +1554,18 @@ def main():
         if os.path.exists("hospital.jpg"):
             st.image("hospital.jpg", caption="Odpoczywaj, bohaterze...")
             
+    # 👇👇👇 TU JEST ZMIANA STRUKTURY 👇👇👇
+    elif on_cooldown and not st.session_state.party_mode:
+        # JEŚLI JEST COOLDOWN (i nie ma imprezy)
+        st.info(f"❄️ **SYSTEM CHŁODZENIA AKTYWNY**")
+        st.markdown(f"""
+        <div style="text-align: center; padding: 20px; border: 1px dashed #555; border-radius: 10px;">
+            <h3>⏳ Musisz odczekać: {time_left_str}</h3>
+            <p style="color: grey;">"Co nagle to po diable, Pawle. To nie karabin maszynowy."</p>
+            <p style="font-size: 0.8em;">Wróć później.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
     else:
         # --- ✅ JESTEŚ ŻYWY (Rysujemy przyciski) ---
         cols = st.columns(5)
@@ -1858,6 +1909,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

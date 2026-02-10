@@ -1896,10 +1896,11 @@ if selected:
                 time.sleep(0.5) 
                 st.toast(f"💳 Zaksięgowano: +{earned_credits} kredytów!", icon="🤑")
     
-        # --- FINALIZACJA ---
+# --- FINALIZACJA ---
         time.sleep(delay_time) 
         st.rerun()
     
+    # 👇👇👇 TU JEST POPRAWKA WCIĘCIA (Cofnięte w lewo, 4 spacje) 👇👇👇
     if st.session_state.last_comment:
         if st.session_state.last_points_change >= 3:
              st.success(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
@@ -1913,6 +1914,7 @@ if selected:
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -1594,7 +1594,7 @@ def main():
                 selected = (btn_status, btn_points)
     
     # --- LOGIKA PO KLIKNIĘCIU (Twoja sprawdzona sekcja) ---
-if selected:
+    if selected:
         # 👇👇👇 POCZĄTEK BLOKADY SPAMU (DEBOUNCE)
         current_time = time.time()
         
@@ -1914,6 +1914,7 @@ if selected:
     
 if __name__ == "__main__":
     main()
+
 
 
 

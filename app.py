@@ -447,6 +447,9 @@ def save_to_sheets(status, points, comment, party_mode, note):
         st.error("Brak połączenia z bazą danych Google!")
         return
 
+    # 🔥 FIX: Konwersja int64 na zwykły int (dla Google Sheets)
+    points = int(points) 
+
     try:
         sheet = client.open(GOOGLE_SHEET_NAME).sheet1
         now = get_polish_time()
@@ -1607,12 +1610,12 @@ def main():
         status, points = selected # <--- TO JEST KLUCZOWE ROZPAKOWANIE
         
         # 1. LEVEL GATE (BRAMA SKARBCA)
-        if points > 0: 
+if points > 0: 
             current_cycle_num = current_score // 60
             next_threshold = (current_cycle_num + 1) * 60
             if current_score < next_threshold and (current_score + points) > next_threshold:
                 diff = next_threshold - current_score
-                points = diff 
+                points = int(diff) # <--- 🔥 TU DODAJ int()
                 st.toast(f"🛑 DOTARŁEŚ DO BRAMY SKARBCA! (Stop na {next_threshold} pkt)", icon="🛡️")
                 time.sleep(1)
 
@@ -1909,6 +1912,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

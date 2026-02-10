@@ -1594,28 +1594,29 @@ def main():
                 selected = (btn_status, btn_points)
     
     # --- LOGIKA PO KLIKNIĘCIU (Twoja sprawdzona sekcja) ---
-    if selected:
-
+if selected:
         # 👇👇👇 POCZĄTEK BLOKADY SPAMU (DEBOUNCE)
         current_time = time.time()
         
         # Sprawdzamy czy minęły 2 sekundy od ostatniego kliknięcia
         if current_time - st.session_state.last_click_time < 2.0:
             st.warning("⏳ Wolniej, kowboju! System przetwarza poprzednią akcję...")
-            st.stop() # Zatrzymujemy skrypt - nic się nie zapisze
+            st.stop()
         
         # Jeśli przeszło test, aktualizujemy czas
         st.session_state.last_click_time = current_time
-        # 👆👆👆 KONIEC BLOKADY SPAMU 👆👆👆
-        status, points = selected # <--- TO JEST KLUCZOWE ROZPAKOWANIE
+        # 👆👆👆 KONIEC BLOKADY SPAMU
+
+        status, points = selected 
         
-        # 1. LEVEL GATE (BRAMA SKARBCA)
-if points > 0: 
+        # 1. LEVEL GATE (BRAMA SKARBCA) - Z POPRAWKĄ INT64
+        if points > 0: 
             current_cycle_num = current_score // 60
             next_threshold = (current_cycle_num + 1) * 60
+            # Sprawdzamy czy dodanie punktów przekroczy próg
             if current_score < next_threshold and (current_score + points) > next_threshold:
                 diff = next_threshold - current_score
-                points = int(diff) # <--- 🔥 TU DODAJ int()
+                points = int(diff) # <--- 🔥 KLUCZOWA POPRAWKA (int)
                 st.toast(f"🛑 DOTARŁEŚ DO BRAMY SKARBCA! (Stop na {next_threshold} pkt)", icon="🛡️")
                 time.sleep(1)
 
@@ -1623,7 +1624,7 @@ if points > 0:
         penalty_applied = False
         if st.session_state.party_mode:
             today = get_polish_time()
-            if today.weekday() < 5:# Pon-Czw (Piątek wieczór to już weekend)
+            if today.weekday() < 5: # Pon-Czw (Piątek wieczór to już weekend)
                 yesterday_str = (today - timedelta(days=1)).strftime("%Y-%m-%d")
                 today_str = today.strftime("%Y-%m-%d")
                 
@@ -1912,6 +1913,7 @@ if points > 0:
 
 if __name__ == "__main__":
     main()
+
 
 
 

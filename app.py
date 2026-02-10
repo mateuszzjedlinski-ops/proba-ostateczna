@@ -1899,21 +1899,21 @@ if selected:
 # --- FINALIZACJA ---
         time.sleep(delay_time) 
         st.rerun()
-    
-    # 👇👇👇 TU JEST POPRAWKA WCIĘCIA (Cofnięte w lewo, 4 spacje) 👇👇👇
-    if st.session_state.last_comment:
-        if st.session_state.last_points_change >= 3:
-             st.success(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
-        else:
-            st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
-    
-    with st.expander("📜 Historia wpisów (z Chmury)"):
-        if not df.empty:
-            # Sortujemy tak, żeby najnowsze były na górze
-            st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
 
-if __name__ == "__main__":
-    main()
+    # 👇 TO JEST POZIOM GŁÓWNY FUNKCJI MAIN (4 spacje wcięcia) 👇
+        if st.session_state.last_comment:
+            if st.session_state.last_points_change >= 3:
+                 st.success(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
+            else:
+                st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
+    
+        with st.expander("📜 Historia wpisów (z Chmury)"):
+            if not df.empty:
+                # Sortujemy tak, żeby najnowsze były na górze
+                st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
+    
+    if __name__ == "__main__":
+        main()
 
 
 

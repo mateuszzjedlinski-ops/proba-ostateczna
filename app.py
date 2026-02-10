@@ -899,7 +899,9 @@ def main():
     
     # --- ANIMACJA PRZEJŚCIA (Wklej to tutaj) ---
     if "show_vault_animation" in st.session_state and st.session_state.show_vault_animation:
-        play_level_up_animation(1) 
+        # Pobieramy poziom z pamięci (domyślnie 1, jeśli brak danych)
+        target_lvl = st.session_state.get("last_cycle_reached", 1)
+        play_level_up_animation(target_lvl) 
         st.session_state.show_vault_animation = False
     # -------------------------------------------
     
@@ -1881,8 +1883,9 @@ def main():
                 
                 # --- TU JEST KLUCZOWY MECHANIZM PRZEJŚCIA ---
                 # Jeśli był cykl 0 (Prolog), a teraz jest 1 (Skarbiec) -> Ustaw flagę animacji
-                if old_cycle == 0 and new_cycle == 1:
+                if new_cycle > old_cycle:
                     st.session_state.show_vault_animation = True
+                    st.session_state.last_cycle_reached = new_cycle
                 
     # --- 💰 POWIADOMIENIE O KREDYTACH (TYLKO PO ODBLOKOWANIU SKLEPU) ---
         new_total_score = current_score + points 
@@ -1914,6 +1917,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 

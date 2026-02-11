@@ -1346,12 +1346,23 @@ def main():
         
         if not df.empty:
             st.subheader("📈 Historia Aktywności")
+            # Wykres
             try:
                 chart_data = df[['Data', 'Punkty']].copy()
                 chart_data = chart_data.groupby('Data')['Punkty'].sum().reset_index()
                 st.line_chart(chart_data, x='Data', y='Punkty')
             except:
                 st.caption("Za mało danych na wykres.")
+
+            # 👇👇👇 TU PRZENIEŚLIŚMY HISTORIĘ WPISÓW 👇👇👇
+            st.markdown("---")
+            with st.expander("📜 Pełny Rejestr Zdarzeń", expanded=True):
+                 st.dataframe(
+                     df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']]
+                     .sort_values(by=['Data', 'Godzina'], ascending=False), 
+                     hide_index=True, 
+                     use_container_width=True
+                 )
         
 # --- ZAKŁADKA 3: SKLEP (TERAZ RÓWNO Z INNYMI) ---
     with tab3:
@@ -1476,6 +1487,19 @@ def main():
         
         st.markdown("---")
         st.caption("W przyszłości znajdziesz tu więcej opcji, np. resetowanie konta czy zmianę motywu.")
+
+        # ... (kod kalendarza wyżej) ...
+        
+        st.markdown("---")
+        st.subheader("🛠️ Narzędzia Dewelopera")
+        
+        col_dev1, col_dev2 = st.columns([1, 2])
+        with col_dev1:
+            if st.button("🔄 Odśwież Dane"):
+                st.cache_data.clear()
+                st.rerun()
+        with col_dev2:
+            st.caption("Kliknij, jeśli ręcznie zmieniałeś coś w Excelu i aplikacja tego nie widzi.")
         
         # --- STREFA AWARYJNA (POPRAWIONE WCIĘCIA) ---
         st.markdown("---")
@@ -1910,13 +1934,9 @@ def main():
             else:
                 st.info(f"💬 **Jeż mówi:** {st.session_state.last_comment}")
     
-        with st.expander("📜 Historia wpisów (z Chmury)"):
-            if not df.empty:
-                # Sortujemy tak, żeby najnowsze były na górze
-                st.dataframe(df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']].sort_values(by=['Data', 'Godzina'], ascending=False), hide_index=True, use_container_width=True)
-    
 if __name__ == "__main__":
     main()
+
 
 
 

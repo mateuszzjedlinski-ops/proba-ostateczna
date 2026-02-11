@@ -1346,7 +1346,6 @@ def main():
         
         if not df.empty:
             st.subheader("📈 Historia Aktywności")
-            # Wykres
             try:
                 chart_data = df[['Data', 'Punkty']].copy()
                 chart_data = chart_data.groupby('Data')['Punkty'].sum().reset_index()
@@ -1354,16 +1353,123 @@ def main():
             except:
                 st.caption("Za mało danych na wykres.")
 
-            # 👇👇👇 TU PRZENIEŚLIŚMY HISTORIĘ WPISÓW 👇👇👇
+            # 👇👇👇 TUTAJ JEST PRZYWRÓCONA HISTORIA (RATUNEK PRZED BLOKADĄ) 👇👇👇
             st.markdown("---")
-            with st.expander("📜 Pełny Rejestr Zdarzeń", expanded=True):
+            with st.expander("📜 Pełny Rejestr Zdarzeń", expanded=False):
                  st.dataframe(
                      df[['Data', 'Godzina', 'Stan', 'Punkty', 'Notatka', 'Komentarz']]
                      .sort_values(by=['Data', 'Godzina'], ascending=False), 
                      hide_index=True, 
                      use_container_width=True
                  )
-        
+
+    # 2. 🏆 GABLOTA TROFEÓW 2.0 (Z EKWIPUNKIEM)
+        with st.expander("🏆 Gablota Trofeów", expanded=True):
+            
+            # --- SEKCJA 1: PROLOG ---
+            st.markdown("### 🌍 Prolog")
+            prolog_achievements = []
+            if current_score >= 15: prolog_achievements.append("🚶 Obieżyświat (Lv 1)")
+            if current_score >= 30: prolog_achievements.append("🏃 Poszukiwacz (Lv 2)")
+            if current_score >= 45: prolog_achievements.append("⚔️ Wojownik (Lv 3)")
+            if current_score >= 60: prolog_achievements.append("🦸‍♂️ BOHATER (Prolog Ukończony)")
+            
+            if not prolog_achievements:
+                st.caption("Jeszcze nic. Ruszaj w drogę!")
+            else:
+                for ach in prolog_achievements:
+                    st.success(ach)
+    
+            # --- SEKCJA 2: SKARBIEC ---
+            st.markdown("---")
+            st.markdown("### 💎 Skarbiec Nieskończoności")
+            
+            vault_achievements = []
+            if owned_stones >= 1: vault_achievements.append("🟦 Władca Przestrzeni (Kamień 1)")
+            if owned_stones >= 2: vault_achievements.append("🟥 Zaklinacz Rzeczywistości (Kamień 2)")
+            if owned_stones >= 3: vault_achievements.append("🟪 Potęga Absolutna (Kamień 3)")
+            if owned_stones >= 4: vault_achievements.append("🟨 Geniusz Umysłu (Kamień 4)")
+            if owned_stones >= 5: vault_achievements.append("🟧 Handlarz Dusz (Kamień 5)")
+            if owned_stones >= 6: vault_achievements.append("🟩 PAN CZASU (Wszystkie Kamienie!)")
+            
+            if not vault_achievements:
+                st.caption("Skarbiec jest pusty. Zdobądź pierwszy kamień!")
+            else:
+                for ach in vault_achievements:
+                    st.info(ach)
+    
+            # --- SEKCJA 3: TRYB IMPREZA ---
+            st.markdown("---")
+            st.markdown("### 🍺 Tryb Impreza")
+            
+            try:
+                # Poprawka filtru dla pewności (czasem zapisuje jako boolean, czasem string)
+                party_df = df[df['Tryb'].astype(str).isin(['ON', 'True', '1'])]
+                party_count = len(party_df)
+                party_fails = len(party_df[party_df['Punkty'] < 0])
+            except KeyError:
+                party_count = 0
+                party_fails = 0
+            
+            # A. POZYTYWNE
+            party_badges = []
+            if party_count >= 3: party_badges.append("🥂 Rozgrzewka (3 imprezy)")
+            if party_count >= 6: party_badges.append("🕺 Król Parkietu (6 imprez)")
+            if party_count >= 15: party_badges.append("⚡ BÓG DIONIZOS (15 imprez)")
+    
+            if party_badges:
+                for badge in party_badges:
+                    st.warning(badge)
+            else:
+                st.caption(f"Licznik imprez: {party_count}/3 (Wbijaj pierwszy level!)")
+
+            # --- NOWA SEKCJA 4: EKWIPUNEK I ZAKUPY ---
+            st.markdown("---")
+            st.markdown("### 🎒 Ekwipunek i Bogactwo")
+
+            # 1. Analiza zakupów
+            bought_items = []
+            total_spent = 0
+            
+            if not df.empty and 'Notatka' in df.columns:
+                # Filtrujemy wiersze z zakupami
+                shop_rows = df[df['Notatka'].str.contains("SHOP_BUY", na=False)]
+                
+                for _, row in shop_rows.iterrows():
+                    try:
+                        # Format notatki: SHOP_BUY | Nazwa | -Koszt
+                        parts = row['Notatka'].split('|')
+                        item_name = parts[1].strip()
+                        cost = int(parts[2].strip())
+                        
+                        bought_items.append(item_name)
+                        total_spent += abs(cost)
+                    except:
+                        continue
+
+            # 2. Wyświetlanie listy przedmiotów
+            if bought_items:
+                st.caption("Twoje Artefakty:")
+                # Usuwamy duplikaty
+                unique_items = list(set(bought_items))
+                st.write(", ".join([f"**{item}**" for item in unique_items]))
+            else:
+                st.caption("Plecak jest pusty. Idź na zakupy!")
+
+            # 3. Osiągnięcia Finansowe
+            finance_badges = []
+            
+            if len(bought_items) >= 1:
+                finance_badges.append("🛍️ Pierwszy Klient (Pierwszy zakup)")
+            if total_spent >= 1000:
+                finance_badges.append("💸 Wielki Inwestor (Wydano 1000+ kredytów)")
+            if total_spent >= 5000:
+                finance_badges.append("🏦 Wilk z Wall Street (Wydano 5000+ kredytów)")
+
+            if finance_badges:
+                st.write("") # Odstęp
+                for badge in finance_badges:
+                    st.success(badge, icon="💰")
 # --- ZAKŁADKA 3: SKLEP (TERAZ RÓWNO Z INNYMI) ---
     with tab3:
         st.header("🛒 Czarny Rynek Artefaktów")
@@ -1936,6 +2042,7 @@ def main():
     
 if __name__ == "__main__":
     main()
+
 
 
 
